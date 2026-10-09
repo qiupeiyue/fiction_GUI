@@ -22,7 +22,7 @@
 在右侧（或页面下方）的 **Releases** 里下载最新版安装包：
 
 ```
-AdaaFictionGUI-Setup-1.0.1.exe
+AdaaFictionGUI-Setup-1.0.0.exe
 ```
 
 双击安装即可。也提供免安装（绿色）版，解压后直接运行。
