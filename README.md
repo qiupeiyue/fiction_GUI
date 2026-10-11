@@ -8,7 +8,7 @@ A local writing tool for novelists. Characters, the storyboard, the setting libr
 >
 > Multi-thread plotting · character profiles · setting library · storyboard · timeline
 
-> 当前版本 / Version：**1.1.0** ｜ 更新时间 / Updated：**2026-10-11**
+> 当前版本 / Version：**1.1.0** ｜ 更新时间 / Updated：**2026-10-12**
 
 ---
 
