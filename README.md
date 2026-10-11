@@ -1,199 +1,101 @@
-# Adaa的小说工坊
+# Adaa的小说工坊 · Adaa's Fiction Workshop
 
-一款面向长篇小说作者的本地创作工具：把**人物档案**、**事件轴**、**设定档案**、**文本分析**放在同一个工作区里，边写边整理世界观和情节。
+一款面向长篇小说作者的本地创作工具：把**人物档案**、**事件轴**、**设定档案**与**文本分析**放在同一个工作区里，边写边整理世界观与情节。
+
+A local writing tool for novelists. Characters, the storyboard, the setting library and text analysis live in one workspace, so you can build the world while you write.
 
 > 多线剧情 · 人物档案 · 设定档案 · 事件轴 · 时间线
+>
+> Multi-thread plotting · character profiles · setting library · storyboard · timeline
 
-> 当前版本：**1.0.3** ｜ 更新时间：**2026-10-11**
-
-## 更新日志
-
-### 1.0.3（2026-10-11）
-
-修掉「装到 `C:\Program Files` 后一启动就报错」的安装问题，并继续理顺事件轴与二维事件图里事件集、章节线的拖拽与显示。
-
-- **安装与运行**
-  - 修复程序装在 `C:\Program Files` 下时启动就弹「A JavaScript error occurred in the main process」（`EPERM: mkdir ...\output`）的问题：安装目录写不进去时不再报错，也不会再让主进程崩溃。
-  - 导出文件与历史版本默认改到 `文档\fiction_GUI\output` 和 `文档\fiction_GUI\history`：程序装在只读目录也能正常导出；卸载、换安装位置、覆盖升级都不会碰到这两个文件夹里的内容。
-  - 安装包默认安装到 `C:\Program Files\fiction_GUI`（安装界面里仍可以改成别的目录）。
-  - 卸载时弹窗会列出「当前导出路径」和「当前历史版本保存路径」，并说明这两个文件夹需要自己手动清理；卸载本身只删除安装目录。
-- **事件轴**
-  - 事件集整体拖动、章节线跨过事件集的相关修复。
-  - 「事件信息」弹窗新增 `#` 行号：直接改 `#` 就等于把这个事件移动到该行；填 0、负数、小数或超出范围会自动夹到合法行号。
-  - 拖动事件卡片松手后不再卡顿。
-- **二维事件图**
-  - 为避免误操作，事件与章节的拖拽已全部禁用，只保留查看、折叠和右键菜单；要调整行号 / 章节归属请到事件轴里操作。
-  - 展开事件集时，左侧的集合竖卡与成员行严格对齐：成员中间夹着空节分界线时也不会错位。
-- **人物关系界面**
-  - 人物关系图的圆圈改用与人物边栏一致的美术，整体更紧凑。
-  - 左侧候选列表在新增 / 删除人物后立即刷新；分组信息失效时兜到「未分组」列出来，不再整栏空白。
-- **设置**
-  - 新增「自动更新」子界面：可以开关「启动时自动检查并安装新版本」，也能随时「立即检查」；关掉后不再自动下载。
-  - 「路径」改名「路径设置」；设置里各子界面内容整体上移，设置弹窗加高，一屏能看更多。
-- **界面细节**
-  - 滚动悬浮预览改成贴着边栏外沿：左侧边栏贴其右侧、右侧边栏贴其左侧、出场统计贴表格外侧右下角；边栏带拖宽手柄时贴的是含手柄的外沿，不重叠也不留缝。
-  - 使用说明里会显示当前构建号，方便确认跑的是不是最新代码。
-- **快捷键**
-  - 取消 `Shift+↑/↓` 整组上移 / 下移；批量操作条上的「↑ 上移 / ↓ 下移」按钮保留。
-  - 保存类快捷键统一：`Ctrl+S` 只保存不关闭；`Esc` / `×` 不保存直接关闭；`Enter` 保存并关闭。
-
-
-### 1.0.2（2026-10-10）
-
-整体界面细节、并清理掉一批冗余和无效功能。
-
-- **事件轴 · 章节划分优化**
-  - 拖动事件时「相对章节线上下移动」只改所属章 / 节，不再改变叙事行号（#）。
-  - 「整理」按钮改为先按章 / 节线吸收下方事件、再清理仍然为空的章和节，顺序不再颠倒。
-  - 修复拖动到两个节线之间、空节上下方等位置时行号乱跳、章节归属错乱的问题。
-  - 自动识别章节时，没有标题的段落改用上传文档的文件名命名，不再出现「开头 · 未分章」这类说法。
-- **界面设计整体优化**
-  - 重做「编辑关系」界面。
-  - 新增 / 编辑关系时，人物 A / B 改为「下拉 + 输入」二合一，支持按名字、别名自动匹配。
-- **简化冗余与无效功能**
-  - 移除各批量条里的「反选」按钮与 `Ctrl+I` 快捷键。
-  - 移除事件轴右上角冗余的「按章节重排」按钮。
-  - 移除章节边栏冗余的「＋ 章」按钮。
-  - 精简多处提示文案与悬浮说明。
-
-## 界面功能
-
-### 顶栏 / 工作区
-
-- **小说下拉**：新建、切换、重命名、删除作品。
-- **复制到新小说**：复制当前作品，并自动打开副本，适合开分支或另存备份。
-- **导入 / 导出 JSON**：导出会把人物、事件、设定、图片和文本分析状态写进同一个文件；导入后即可在另一台电脑继续使用。
-- **保存（Ctrl+S）**：保存当前工作区和界面状态，下次打开直接恢复。
-- **清空工作区**：可选择只清人物 / 事件 / 设定，或连同文本分析结果一起清空。
-- **设置**：集中管理人物、事件、设定档案、文本分析、历史版本、路径和 Agent。
-- **？**：使用说明、版本号和更新时间。
-
-### 人物档案
-
-- **分组与势力**：人物可按分组、势力归类；支持拖动换组、拖动分组排序、双击改名。
-- **搜索与过滤**：只显示符合条件的人物卡片；批量操作只作用于当前显示出来的卡片。
-- **批量操作**：多选后可批量移动分组、复制、删除、合并、按事件更新。
-- **清理与合并**：可按事件数或文本量清理超短条目；自动识别重名、别名、全称 / 简称和错别字并建议合并。
-- **人物卡片**：支持图片（上传后可拖动裁剪）、别名、势力、自定义字段。
-- **雷达图**：在设置里启用后，可给每个人物填写各维度数值并生成雷达图；维度说明会作为文本分析的打分依据。
-
-### 人物关系 / 人物分析
-
-- **人物关系网**：维护人物之间的关系；关系类型可自定义、改色、拖动排序、删除，也可按关系过滤连线。
-- **势力分析**：按势力查看人物分布和关系。
-- **出场统计**：统计每个人物的首次 / 最后出场章节与事件，双击可跳到事件轴。
-- **雷达分析**：以人物为行、雷达维度为列查看评分；点列名可排序，支持分组过滤、搜索、多选叠加对比。
-
-### 事件轴
-
-- **线路**：横轴管理明线 / 暗线；支持新建、改名、改色、拖动排序、删除，右键线路可快捷操作。
-- **章 / 节**：用分割线划分章节和小节；事件拖动到分割线附近可自动归章。
-- **事件卡**：纵轴按叙事顺序排列，横轴按线路排列；拖动卡片可改讲述顺序和所属线路。
-- **事件集**：把同一章内、**行相邻**的事件压缩成一个事件集；同一行的事件可以跨线路，集合内事件不受线路限制。支持展开 / 折叠、整体拖动、把事件拖进 / 拖出集合。
-- **行号 `#`**：在「事件信息」里直接改 `#`，就等于把事件移动到该行（越界会自动夹到合法行号）。
-- **批量操作**：多选后可批量复制、删除、移动线路、并入事件集。
-- **交互**：Shift 连选、Ctrl 加减选、双击标题快捷改名、双击卡片跳转到事件。
-
-### 二维事件图
-
-- **人物 × 事件矩阵**：横轴人物、纵轴事件，方块点亮表示该人物在该事件登场。
-- **事件集折叠**：事件集默认折叠，可展开查看集合内事件；折叠时人物登场取集内事件的并集。
-- **列宽与滚动**：支持左右拉伸人物列、虚拟滚动，内容过长时右下角显示悬浮预览。
-- **不支持拖拽**：为避免误操作，事件与章节的拖拽在这里已禁用；改行号、改章节归属请到事件轴里做。
-
-### 时间线
-
-- **真实时间排列**：横轴线路、纵轴故事里实际发生的时间，与事件轴的叙事顺序区分开。
-- **列宽调整**：可拖动列分界线调整线路宽度；事件过多时可折叠行。
-
-### 设定档案
-
-- **设定类别**：物品、名词、地点、纪年、势力等；可新建、改名、排序、删除类别。
-- **设定卡片**：支持自定义字段、图片、关联人物和关联事件。
-- **排序与浏览**：可按首字母排序；纪年类别固定单列显示，并带时间轴。
-
-### 文本分析
-
-- **任务管理**：一个任务对应一次分析；任务卡可拖动排序、双击改名、单独删除。
-- **导入原稿**：支持 PDF / Word（.docx）/ TXT；自动识别章、节和小节。
-- **Agent 设置**：在「设置 → Agent」里配置服务商、API Key、模型、并发数和输出上限。
-- **识别阈值**：可设置过滤太短条目的阈值，低于阈值的识别结果会被过滤。
-- **分析结果**：结果保留在下方列表中，可搜索、多选、全选、批量删除，再逐条或批量填入工作区。
-- **合并与回填**：识别人物 / 设定时支持手动选择合并项和主体；填入时按「输入保护」规则处理已有内容，避免覆盖工作区已有信息。
-
-### 设置
-
-- **人物**：人物分组、关系网、雷达图、全局字段。
-- **事件**：线路、全局字段。
-- **设定档案**：设定类别、全局字段。
-- **文本分析**：各字段和人物关系的输入保护方式。
-- **历史版本**：手动保存版本、回退、删除、清空；可设置自动保存间隔。
-- **路径**：导入、导出、历史版本的默认目录。
-- **Agent**：配置 AI 接口；未配置成功时，依赖 Agent 的功能会变灰或弹出提示。
-
-### 快捷键与数据安全
-
-- `Ctrl+S` 保存；`Ctrl+Z` / `Ctrl+Y` 撤销 / 恢复。
-- `Ctrl+A` 按一下全选当前显示内容，再按一下全部取消。
-- `Esc` 退出批量、过滤或弹窗；`Delete` 删除选中卡片。
-- `Shift` 连选、`Ctrl` 加减选。
-- 输入框内按 `Enter` 表示键入当前内容；不在输入框内时按 `Enter` 表示保存并关闭。
-- 建议定期用「导出 JSON」备份。图片以 Base64 形式嵌在工作区数据里，导出 JSON 会一并带走。
-- 导出文件和历史版本默认保存在 `文档\fiction_GUI\` 下（可以在「设置 → 路径设置」里改）；卸载软件不会删除它们。
+> 当前版本 / Version：**1.1.0** ｜ 更新时间 / Updated：**2026-10-11**
 
 ---
 
-## 下载与安装
+## 本版重点更新 / What's new in 1.1.0
 
-在右侧（或页面下方）的 **Releases** 里下载最新版安装包：
+### 新增「链接」功能 / New: “Bond”
 
-```
-AdaaFictionGUI-Setup-1.0.3.exe
-```
+> “我已不再是十年前的我了！”
 
-当前发布的是 Windows 安装版。双击安装包后会弹一次系统权限确认（安装到 `C:\Program Files` 需要管理员权限），默认安装位置是 `C:\Program Files\fiction_GUI`，也可以在安装界面里改成别的目录；安装完成后从桌面快捷方式或开始菜单启动即可。
+同一个角色的不同身份、不同时期，现在可以**链接**起来，而不必把人物卡合并成一张。链接后：
 
-导出的 JSON 和历史版本默认写在 `C:\Users\<你的用户名>\Documents\fiction_GUI\` 下的 `output` / `history` 文件夹里（可以在「设置 → 路径」里改），所以卸载、换安装位置、覆盖升级都不会动到你的存档。
+- 人物卡右上角出现回形针；点它就能把别的人物并进这条链。
+- 人物信息顶部出现这条链的选项卡，点一下就能在几张卡之间切换。
+- 人物链上的几张卡可以把雷达图叠在一起比较数值。
+- 关系网里用虚线连接同链人物。
+- 搜索框可匹配识别同链人物。
 
-### Windows 提示「已保护你的电脑」怎么办
+The same character across different identities or eras can now be **bonded** without merging their cards:
 
-这个程序没有购买商业代码签名证书，所以 Windows SmartScreen 或浏览器可能会提示「未知发布者」「Windows 已保护你的电脑」或「不常下载，可能不安全」。这是未签名软件的常见提示，不是程序本身有问题。
+- A paperclip appears on the card; click it to add someone to the bond.
+- Tabs for the whole bond sit in the character window for one-click switching.
+- Their radar charts can be overlaid for comparison.
+- Bonded characters are drawn as dashed links.
+- Search boxes can match and identify characters in the same bond.
 
-按下面操作即可继续安装：
+### 界面多语言 / Multilingual interface
 
-1. 浏览器下载时如果提示风险，点「保留」或「仍然保留」。
-2. 双击安装包后如果出现蓝色窗口「Windows 已保护你的电脑」，点「更多信息」。
-3. 再点右下角出现的「仍要运行」。
-4. 如果 Windows Defender 拦截，打开「Windows 安全中心 → 病毒和威胁防护 → 保护历史记录」，找到这条记录，选择「允许」或「还原」。
+- 简体中文 · 繁體中文 · English · 日本語
+- Simplified Chinese · Traditional Chinese · English · Japanese 
 
-安装包来自本仓库 Releases，建议只从这里下载。
+### 文本分析多语言 / Multilingual text analysis
+
+- 支持分析：简体中文、繁体中文、英文、日文的小说文本。
+- 自动区分文本语言、分句、字数统计；繁简 / 异体字归一，英日文用各自的匹配规则。
+- Analysis works on Simplified Chinese, Traditional Chinese, English and Japanese text. The language is detected automatically for splitting, measuring and matching.
+
+
+### 其它更新 / Other changes
+
+- 修复了弹窗里 **Enter 无法确认**的问题：Enter＝保存并关闭，Ctrl+S＝只保存不关，Esc / ×＝不保存关闭。
+- Fixed the issue where Enter couldn't confirm a dialog: Enter saves and closes, Ctrl+S saves without closing, Esc / × closes without saving.
+- **把所有界面的文案都补上了四种语言**：右键菜单、悬浮提示、弹窗、字幕（提示条）、空状态、占位符、设置里的每一栏，全部跟着语言设置走。
+- **Every string in the app now follows the language setting** — context menus, tooltips, dialogs, toasts, empty states, placeholders and every settings pane.
+- 登场人物 / 关联人物：按分组选择，支持拖拽与多选，默认折叠、点开即选。
+- Cast / linked characters: grouped pickers with drag and multi-select.
+- 输入保护、自定义合并规则、关系类型、事件集、章节管理等多处 Bug 修复与界面打磨。
+- Input protection, custom merge rules, relation types, event sets and chapter management were polished, and several bugs were fixed.
 
 ---
 
-## 自动更新
+## 功能一览 / Features
 
-软件启动时会自动检查 GitHub Releases 是否有新版本，有新版本会提示并增量更新（只下载变化的部分）。
-
-因为程序装在 `C:\Program Files` 下，更新替换文件时系统会弹一次权限确认，点「是」即可；存档不受影响。
-
----
-
-## 快速上手
-
-1. 顶栏「小说」下拉框新建或切换作品。
-2. 左侧建人物、分组、势力。
-3. 事件轴上「＋ 新建事件」搭建情节，拖动卡片改叙事顺序与线路。
-4. 在「设定档案」里补物品、名词、地点、纪年和势力。
-5. 用「文本分析」导入小说原稿，让 AI 帮你抽取人物 / 事件 / 设定。
-6. 定期「导出 JSON」备份，或依赖自动保存与自动更新。
-
-详细说明见软件右上角的「？」使用说明。
+- **人物**：卡片、分组、别名、势力、头像、雷达图；人物卡可以「链接」成同一个人。
+- **事件轴 / 时间线 / 二维事件图**：多线路、章/节分带、事件集、拖拽排序。
+- **设定档案**：物品 / 地点 / 纪年 / 势力 / 名词等类别，支持字段、图片、关联人物。
+- **文本分析**：导入 TXT / Word / PDF，自动识别人物、事件、设定与章节，一键回填。
+- **人物分析**：出场统计、势力分析、雷达分析、关系网。
+- **Characters** — cards, groups, aliases, factions, avatars and radar charts; cards can be bonded into one identity.
+- **Storyboard / Timeline / Matrix** — multiple storylines, chapter/section bands and event sets.
+- **Setting library** — items, places, eras, factions, terms with fields, images and linked characters.
+- **Text analysis** — import TXT / Word / PDF; auto-detect characters, events, settings and chapters; write results back.
+- **Character analysis** — appearance stats, faction view, radar view and the relation network.
 
 ---
 
-## 关于
+## 安装说明 / Installation
 
-- 作者：Adaa
-- 邮箱：313744963@qq.com
+- 安装包：`AdaaFictionGUI-Setup-1.1.0.exe`（在 Releases 页下载，双击即可安装）。
+- 安装包默认安装到 `C:\Program Files\Adaa_Fiction_Workshop`，安装向导里可以改目录。
+- 导出文件与历史版本默认放在 `文档\fiction_GUI\output` 和 `文档\fiction_GUI\history`，不随安装目录删除。
+- Windows 可能提示「未知发布者 / SmartScreen」：点「更多信息 → 仍要运行」即可。这是因为程序尚未做数字签名。
+- 卸载只会删除程序本身；导出文件与历史版本需要你手动清理。
 
-本软件的版权和最终解释权归作者 Adaa 所有。
+- Installer: `AdaaFictionGUI-Setup-1.1.0.exe` — download it from the Releases page and double-click to install.
+- The installer defaults to `C:\Program Files\Adaa_Fiction_Workshop`; the path can be changed in the wizard.
+- Exports and history are saved under `Documents\fiction_GUI\output` and `Documents\fiction_GUI\history`, outside the install folder.
+- Windows may warn about an unknown publisher (SmartScreen): choose “More info → Run anyway”. The app is not code-signed yet.
+- Uninstalling removes only the program; exports and history must be cleaned up manually.
+
+---
+
+## 版权 / Copyright
+
+本软件的版权及最终解释权归作者 **Adaa** 所有。
+
+Email: 313744963@qq.com
+
+Copyright and final interpretation rights belong to the author, **Adaa**.
+
+Email: 313744963@qq.com
