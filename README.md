@@ -8,11 +8,42 @@ A local writing tool for novelists. Characters, the storyboard, the setting libr
 >
 > Multi-thread plotting · character profiles · setting library · storyboard · timeline
 
-> 当前版本 / Version：**1.1.0** ｜ 更新时间 / Updated：**2026-10-12**
+> 当前版本 / Version：**1.1.1** ｜ 更新时间 / Updated：**2026-10-13**
 
 ---
 
-## 本版重点更新 / What's new in 1.1.0
+## 本版重点更新 / What's new in 1.1.1
+
+### 章节划分更好用 / Chapter editing, fixed
+
+- **在上方 / 下方插入章、节**：落点算得更准了。在空章（空节）分界线的**上方**插入，新分界线必定排在它上面；章带正下方那条缝插入时，原来那一章会变成空章、新章吸收它下面的事件。
+- **筛选线路时**：只显示某几条线路时，把章节线拖到缝隙里，落下的位置和屏幕上看到的落点提示完全一致（以前会跑到更下面去）。
+- **把事件拖到分界线上**：按事件原本在线的哪一侧算——线上面的事件落到线上方、成为上一章（节）的最后一行；线下面的事件落到线下方、成为这一章（节）的第一行。
+- Inserting a chapter/section above an empty divider, dropping a chapter line while storylines are filtered, and dragging an event onto a divider now all land exactly where the drop hint shows.
+
+### 界面更整齐 / A cleaner interface
+
+- 章节边栏、设定类别边栏、分析任务边栏、人物关系网左边的两栏，统一成同一套「简洁外框」卡片，和设定档案的条目卡一致。
+- 人物卡片、关系网、雷达图等处的间距与配色继续打磨。
+- Chapter rail, category rail, analysis-task rail and the relation-network pickers now share one clean framed-card look.
+
+### 文本分析结果改版 / Text-analysis results, reorganized
+
+- 结果改成四个选项卡：**人物 / 事件 / 设定条目 / 人物关系**，「身份合并」不再单独显示。
+- 事件按 **章 → 节** 分栏，设定条目按 **类别** 分栏，人物关系按 **关系种类** 分栏；每一栏都能折叠。
+- 左上角计数改成「选中 N/总计 M」，一眼看出会填入多少条。
+- 「过滤阈值」现在直接把低于阈值的条目**隐藏**，也不参与勾选和填入。
+- Results are now tabbed (characters / events / entries / relations) and grouped by chapter→section, category, or relation kind — collapsible, with an "N selected / M total" counter and a threshold filter that hides (and skips) thin entries.
+
+### 其它 / Other
+
+- 「整理」按钮的英文改为 **Organize**。
+- 检查更新、下载完成的提示跟随界面语言（简中 / 繁中 / English / 日本語）。
+- Update-check and download prompts now follow the interface language.
+
+---
+
+## 1.1.0 版本要点 / Highlights in 1.1.0
 
 ### 新增「链接」功能 / New: “Bond”
 
@@ -76,13 +107,13 @@ The same character across different identities or eras can now be **bonded** wit
 
 ## 安装说明 / Installation
 
-- 安装包：`AdaaFictionGUI-Setup-1.1.0.exe`（在 Releases 页下载，双击即可安装）。
+- 安装包：`AdaaFictionGUI-Setup-1.1.1.exe`（在 Releases 页下载，双击即可安装）。
 - 安装包默认安装到 `C:\Program Files\Adaa_Fiction_Workshop`，安装向导里可以改目录。
 - 导出文件与历史版本默认放在 `文档\fiction_GUI\output` 和 `文档\fiction_GUI\history`，不随安装目录删除。
 - Windows 可能提示「未知发布者 / SmartScreen」：点「更多信息 → 仍要运行」即可。这是因为程序尚未做数字签名。
 - 卸载只会删除程序本身；导出文件与历史版本需要你手动清理。
 
-- Installer: `AdaaFictionGUI-Setup-1.1.0.exe` — download it from the Releases page and double-click to install.
+- Installer: `AdaaFictionGUI-Setup-1.1.1.exe` — download it from the Releases page and double-click to install.
 - The installer defaults to `C:\Program Files\Adaa_Fiction_Workshop`; the path can be changed in the wizard.
 - Exports and history are saved under `Documents\fiction_GUI\output` and `Documents\fiction_GUI\history`, outside the install folder.
 - Windows may warn about an unknown publisher (SmartScreen): choose “More info → Run anyway”. The app is not code-signed yet.
