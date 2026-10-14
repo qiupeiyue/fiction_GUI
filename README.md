@@ -50,17 +50,13 @@ The setting library gains a built-in Equipment category with kind, appearance, f
 
 - 条目卡右键「移动到…」；批量条上先从「移动到…」下拉里选目标类别，再点「移动到」。
 - 目标类别没有该条目所在的分组时，条目落到「未分组」。
-- 装备雷达图只属于装备类别：移到别的类别时雷达图与数值一并清除；移入装备不会自动开启雷达图。
-- 条目进出「势力」类别时，人物卡上的所属势力同步更新。
-- 移动可撤销，撤销时雷达图数据一并恢复。
+
 
 Entries can be moved to another category as a whole; fields, linked characters, name, image and linked events are kept.
 
 - Right-click an entry card and pick “Move to…”; in the batch bar, choose the target from the “Move to…” list and press “To category”.
 - When the target category has no group of that name, the entry goes to Ungrouped.
-- The gear radar belongs to the Equipment category only: moving an entry to another category clears the radar chart and its values, and moving one into Equipment does not enable the radar chart.
-- Moving an entry into or out of Factions updates the faction shown on character cards.
-- A move can be undone, radar values included.
+
 
 ### 新增：隐私设置 / New: privacy
 
@@ -93,13 +89,13 @@ Settings gains a Privacy pane that can lock **the current fiction** or **the who
 - 下拉框、悬浮提示与右键菜单统一使用程序自带的面板。
 - 主区选项卡、分析结果选项卡与各分析表格的美术统一，选项卡下方为一条细线。
 - 输入框：**Enter 确认并移出光标，Ctrl+Enter 换行**。
-- 顶栏新增页面缩放框（等同 Ctrl+滚轮）：可选档位或直接输入百分比，Enter 确认、Esc 取消，Ctrl+0 恢复 100%。
+- 顶栏新增页面缩放框（等同 Ctrl+滚轮）：可选档位或直接输入百分比，Ctrl+0 恢复 100%。
 - 页面缩放作用于整个界面；悬浮提示、右键菜单与其他浮层始终贴着鼠标位置，不随缩放偏移。
 
 - Dropdowns, hover tips and context menus use the app's own panels.
 - Main tabs, result tabs and analysis tables share the same styling, with a thin rule below the tabs.
 - Input fields: **Enter confirms and leaves the field; Ctrl+Enter inserts a newline**.
-- A page-zoom box in the top bar (equivalent to Ctrl+wheel): choose a preset or type a percentage; Enter applies, Esc cancels, and Ctrl+0 restores 100%.
+- A page-zoom box in the top bar (equivalent to Ctrl+wheel): choose a preset or type a percentage and Ctrl+0 restores 100%.
 - Page zoom scales the whole interface; hover tips, context menus and other floating panels stay at the pointer and do not drift with zoom.
 
 ### 快捷键与选择 / Shortcuts and selection
@@ -121,21 +117,15 @@ Settings gains a Privacy pane that can lock **the current fiction** or **the who
 
 ---
 
-## 1.1.1 版本要点 / Highlights in 1.1.1
+## 1.1 版本要点 / Highlights in 1.1
 
 - **章节划分**：空章 / 空节分界线上下的插入落点正确；章节线拖入缝隙的落点与提示一致；事件拖到分界线上按其原本所处一侧归属。
 - **界面与分析结果**：章节边栏、设定类别边栏、分析任务边栏与人物关系网左栏统一美术。
-
-- **Chapter editing**: inserting above or below an empty chapter / section divider lands correctly;a chapter line dropped into a gap lands where the hint indicates; an event dropped onto a divider joins the side it came from.
-- **Interface and results**: the chapter rail, category rail, analysis-task rail and the relation pickers share one style. 
-
----
-
-## 1.1.0 版本要点 / Highlights in 1.1.0
-
 - **「链接」**：同一角色在不同时期、不同身份的人物卡可链接而非合并。
 - **多语言**：界面与文本分析均支持简体中文、繁體中文、English 与 日本語。
 
+- **Chapter editing**: inserting above or below an empty chapter / section divider lands correctly;a chapter line dropped into a gap lands where the hint indicates; an event dropped onto a divider joins the side it came from.
+- **Interface and results**: the chapter rail, category rail, analysis-task rail and the relation pickers share one style. 
 - **“Bond”**: cards for one character across periods or identities can be bonded instead of merged.
 - **Multilingual**: both the interface and text analysis support Simplified Chinese, Traditional Chinese, English and Japanese.
 
