@@ -44,6 +44,24 @@ The setting library gains a built-in Equipment category with kind, appearance, f
 - A gear entry draws its radar only after “Radar chart” is ticked in its card. Values range from 0 to 10 and may be decimals; each entry's axes can be added, removed or renamed individually.
 - The gear radar can be disabled as a whole in Settings. Gear cards then stop showing it, and existing values are kept.
 
+### 设定档案：条目可换类别 / Library: entries can change category
+
+条目可以整体挪到另一个类别，字段、关联人物、名称、图片与关联事件一并保留。
+
+- 条目卡右键「移动到…」；批量条上先从「移动到…」下拉里选目标类别，再点「移动到」。
+- 目标类别没有该条目所在的分组时，条目落到「未分组」。
+- 装备雷达图只属于装备类别：移到别的类别时雷达图与数值一并清除；移入装备不会自动开启雷达图。
+- 条目进出「势力」类别时，人物卡上的所属势力同步更新。
+- 移动可撤销，撤销时雷达图数据一并恢复。
+
+Entries can be moved to another category as a whole; fields, linked characters, name, image and linked events are kept.
+
+- Right-click an entry card and pick “Move to…”; in the batch bar, choose the target from the “Move to…” list and press “To category”.
+- When the target category has no group of that name, the entry goes to Ungrouped.
+- The gear radar belongs to the Equipment category only: moving an entry to another category clears the radar chart and its values, and moving one into Equipment does not enable the radar chart.
+- Moving an entry into or out of Factions updates the faction shown on character cards.
+- A move can be undone, radar values included.
+
 ### 新增：隐私设置 / New: privacy
 
 设置新增「隐私设置」，可分别锁定**当前小说**或**整个工作区**。
@@ -76,11 +94,13 @@ Settings gains a Privacy pane that can lock **the current fiction** or **the who
 - 主区选项卡、分析结果选项卡与各分析表格的美术统一，选项卡下方为一条细线。
 - 输入框：**Enter 确认并移出光标，Ctrl+Enter 换行**。
 - 顶栏新增页面缩放框（等同 Ctrl+滚轮）：可选档位或直接输入百分比，Enter 确认、Esc 取消，Ctrl+0 恢复 100%。
+- 页面缩放作用于整个界面；悬浮提示、右键菜单与其他浮层始终贴着鼠标位置，不随缩放偏移。
 
 - Dropdowns, hover tips and context menus use the app's own panels.
 - Main tabs, result tabs and analysis tables share the same styling, with a thin rule below the tabs.
 - Input fields: **Enter confirms and leaves the field; Ctrl+Enter inserts a newline**.
 - A page-zoom box in the top bar (equivalent to Ctrl+wheel): choose a preset or type a percentage; Enter applies, Esc cancels, and Ctrl+0 restores 100%.
+- Page zoom scales the whole interface; hover tips, context menus and other floating panels stay at the pointer and do not drift with zoom.
 
 ### 快捷键与选择 / Shortcuts and selection
 
@@ -125,16 +145,18 @@ Settings gains a Privacy pane that can lock **the current fiction** or **the who
 
 - **人物**：卡片、分组、别名、势力、头像与雷达图；人物卡可链接为同一角色的不同时期。
 - **事件轴、时间线、二维事件图**：多线路、章节分带、事件集与拖拽排序；时间线按事件实际发生的时间排列，并识别中文数字与四种语言的时间表述。
-- **设定档案**：物品、地点、纪年、势力、装备、名词等类别，支持自定义字段、图片与关联人物；装备条目支持雷达图；地点内嵌地图。
+- **设定档案**：物品、地点、纪年、势力、装备、名词等类别，支持自定义字段、图片与关联人物；条目可在类别间移动；装备条目支持雷达图；地点内嵌地图。
 - **文本分析**：导入 TXT、Word、PDF，自动识别人物、事件、设定与章节，确认后回填。
 - **人物分析**：出场统计、势力分析、雷达分析与关系网。
+- **界面**：四种界面语言；顶栏缩放框可调整整页缩放，等同 Ctrl+滚轮。
 - **隐私设置**：可锁定当前小说或整个工作区，打开时需输入密码。
 
 - **Characters** — cards, groups, aliases, factions, avatars and radar charts; cards can be bonded into one character across eras.
 - **Storyboard, Timeline, Matrix** — multiple storylines, chapter bands, event sets and drag-to-reorder; the timeline orders events by when they actually happen and recognizes Chinese numerals and time wording in four languages.
-- **Setting library** — items, places, eras, factions, equipment and terms, with custom fields, images and linked characters; equipment entries support radar charts, and places include maps.
+- **Setting library** — items, places, eras, factions, equipment and terms, with custom fields, images and linked characters; entries can move between categories; equipment entries support radar charts, and places include maps.
 - **Text analysis** — import TXT, Word or PDF, detect characters, events, settings and chapters, then write the results back after confirmation.
 - **Character analysis** — appearance stats, faction view, radar view and the relation network.
+- **Interface** — four interface languages, with a top-bar zoom box for the whole page, equivalent to Ctrl+wheel.
 - **Privacy** — lock the current fiction or the whole workspace; opening it then requires the password.
 
 ---
