@@ -8,11 +8,11 @@ A local writing tool for long-form fiction. Character profiles, the storyboard, 
 >
 > Multi-thread plotting · character profiles · setting library · storyboard · timeline
 
-> 当前版本 / Version：**1.2.1** ｜ 更新时间 / Updated：**2026-10-16**
+> 当前版本 / Version：**1.2.2** ｜ 更新时间 / Updated：**2026-10-17**
 
 ---
 
-## 本版重点更新 / What's new in 1.2.1
+## 本版重点更新 / What's new in 1.2.2
 
 ### 新增：技能树与树型拓扑 / New: skill tree and tree layout
 
@@ -22,9 +22,9 @@ The setting library gains a built-in Skill tree category and a reusable Tree lay
 
 ### 新增：系谱 / New: pedigree
 
-人物分析新增「系谱」子页面，按家族绘制父母与子女的连线。结合线连接两位父级，世系线由其连向子级，子级可以悬空；抬头「重排」把树根归到 F0、夫妻并入同一代并压缩空代。画布随可用空间等比缩放，最小 64%，再放不下时使用滚动条。
+人物分析新增「系谱」子页面，按家族绘制父母与子女的连线。结合线连接两位父级，世系线由其连向子级，子级可以悬空；抬头「整理重排」把树根归到 F0、夫妻并入同一代并压缩空代。画布随可用空间等比缩放，最小 64%，再放不下时使用滚动条。
 
-Character analysis gains a Pedigree view that draws parents and children by family. A union line joins two parents and a descent line runs from it to a child, which may also float free; “Re-layout” in the header returns roots to F0, merges partners into one generation and removes empty generations. The canvas scales with the available space down to 64% and scrolls beyond that.
+Character analysis gains a Pedigree view that draws parents and children by family. A union line joins two parents and a descent line runs from it to a child, which may also float free; “Tidy up” in the header returns roots to F0, merges partners into one generation and removes empty generations. The canvas scales with the available space down to 64% and scrolls beyond that.
 
 ### 设定条目的雷达图 / Radar charts for entries
 
@@ -148,12 +148,12 @@ The “page and script versions do not match” warning that could appear after 
 
 ## 安装说明 / Installation
 
-- 安装包 `AdaaFictionGUI-Setup-1.2.1.exe` 在 Releases 页面下载，双击安装；默认安装到 `C:\Program Files\Adaa_Fiction_Workshop`，安装向导中可更改目录。
+- 安装包 `AdaaFictionGUI-Setup-1.2.2.exe` 在 Releases 页面下载，双击安装；默认安装到 `C:\Program Files\Adaa_Fiction_Workshop`，安装向导中可更改目录。
 - 导出文件与历史版本默认保存在「文档」下的 `fiction_GUI\output` 与 `fiction_GUI\history`，不在安装目录内。
 - Windows 可能提示未知发布者，选择继续即可；程序暂未进行数字签名。
 - 卸载仅删除程序本身；导出文件与历史版本需手动清理，卸载时会提示这两个路径。
 
-- Download `AdaaFictionGUI-Setup-1.2.1.exe` from the Releases page and double-click to install. It installs to `C:\Program Files\Adaa_Fiction_Workshop` by default; the wizard allows changing the folder.
+- Download `AdaaFictionGUI-Setup-1.2.2.exe` from the Releases page and double-click to install. It installs to `C:\Program Files\Adaa_Fiction_Workshop` by default; the wizard allows changing the folder.
 - Export files and history are stored under `Documents\fiction_GUI\output` and `Documents\fiction_GUI\history`, outside the installation folder.
 - Windows may warn about an unknown publisher; continuing is fine, as the app is not code-signed yet.
 - Uninstalling removes the program only. Export files and history must be deleted manually; the uninstaller shows both paths.
