@@ -384,6 +384,57 @@ function namesLikelySame(a, b) {
   return short.length >= 2 && (long.startsWith(short + "·") || long.startsWith(short + "・"));
 }
 
+function namesNearlySame(a, b) {
+  const left = Array.from(norm(a));
+  const right = Array.from(norm(b));
+  if (Math.min(left.length, right.length) < 4 || Math.abs(left.length - right.length) > 1) return false;
+  let i = 0;
+  let j = 0;
+  let diff = 0;
+  while (i < left.length && j < right.length) {
+    if (left[i] === right[j]) {
+      i += 1;
+      j += 1;
+      continue;
+    }
+    diff += 1;
+    if (diff > 1) return false;
+    if (left.length > right.length) i += 1;
+    else if (right.length > left.length) j += 1;
+    else {
+      i += 1;
+      j += 1;
+    }
+  }
+  return diff + (left.length - i) + (right.length - j) <= 1;
+}
+
+function recordMatchScore(record, char) {
+  const recordName = norm(record && record.name);
+  const charName = norm(char && char.name);
+  const charTokens = char && char.__nameTokens ? char.__nameTokens : characterNameTokens(char);
+  let score = 0;
+  if (recordName && recordName === charName) score += 6;
+  else if (recordName && namesLikelySame(recordName, charName)) score += 4;
+  else if (recordName && namesNearlySame(recordName, charName)) score += 4;
+  charTokens.forEach((token) => {
+    const value = norm(token);
+    if (!value) return;
+    if (value === recordName) score += 3;
+    else if (recordName && namesNearlySame(value, recordName)) score += 2;
+    else if (value.length >= 2 && recordName && (recordName.includes(value) || value.includes(recordName))) {
+      score += 1;
+    }
+  });
+  analysisNameTokens(record).forEach((token) => {
+    const value = norm(token);
+    if (!value) return;
+    if (value === charName) score += 2;
+    if (charTokens.some((charToken) => norm(charToken) === value)) score += 2;
+  });
+  return score;
+}
+
 function mergeTextValue(a, b) {
   const left = text(a);
   const right = text(b);
@@ -673,7 +724,34 @@ function collectReport(input, lang) {
     .slice()
     .sort((a, b) => (Number(a.storyIndex) || 0) - (Number(b.storyIndex) || 0) || (narration.get(a.id) ?? 0) - (narration.get(b.id) ?? 0));
   const characters = mergeCharacterCards(data.characters || [], events);
+  characters.forEach((char, index) => {
+    char.__index = index;
+    const ids = new Set(char.ids || [char.id]);
+    char.__eventCount = events.filter((event) => (event.characterIds || []).some((id) => ids.has(id))).length;
+  });
   const tasks = ((data.analysis || {}).tasks) || [];
+  const recordOwners = new Map();
+  tasks.forEach((task) => {
+    (task.results || []).forEach((record) => {
+      if (!record || record.type !== "character") return;
+      let bestIndex = -1;
+      let bestScore = 0;
+      characters.forEach((char, index) => {
+        const score = recordMatchScore(record, char);
+        if (
+          score > bestScore ||
+          (score === bestScore &&
+            score > 0 &&
+            bestIndex >= 0 &&
+            (char.__eventCount || 0) > (characters[bestIndex].__eventCount || 0))
+        ) {
+          bestScore = score;
+          bestIndex = index;
+        }
+      });
+      if (bestIndex >= 0) recordOwners.set(record, bestIndex);
+    });
+  });
   let radarAxes = (((data.radar || {}).axes) || []).filter((axis) => text(axis && axis.label));
   if (!radarAxes.length) {
     const keys = [];
@@ -723,17 +801,10 @@ function collectReport(input, lang) {
   }
 
   function analysisFor(char) {
-    const keys = (char.__nameTokens || characterNameTokens(char)).slice();
     const out = [];
     tasks.forEach((task) => {
       const records = ((task.results || []) || []).filter(
-        (record) => {
-          if (!record || record.type !== "character") return false;
-          const recordKeys = analysisNameTokens(record);
-          return recordKeys.some((recordKey) =>
-            keys.some((charKey) => namesLikelySame(recordKey, charKey))
-          );
-        }
+        (record) => record && record.type === "character" && recordOwners.get(record) === char.__index
       );
       if (records.length) out.push({ task, records });
     });
