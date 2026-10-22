@@ -14,6 +14,7 @@ const LABELS = {
     radarEvidence: "雷达评分依据",
     radarSupport: "补充来看，",
     radarConclusionHigh: "这些表现跨越多段情节且方向一致，因此{axis}最终评为{score}分（{level}）。",
+    radarConclusionHighLimited: "现有依据集中指向这一方向，因此{axis}最终评为{score}分（{level}）。",
     radarConclusionLow: "相关表现集中而明确，足以支撑{axis}这一维度评为{level}，因此给{score}分。",
     radarConclusionMid: "正反两面的表现并存，权衡后{axis}定为{score}分（{level}）。",
     radarNoFinal: "综合以上依据，这一维度暂不给出最终分数。",
@@ -76,6 +77,7 @@ const LABELS = {
     radarEvidence: "Radar evidence",
     radarSupport: "Additional evidence: ",
     radarConclusionHigh: "These patterns recur across multiple parts of the story and point in the same direction, so {axis} is rated {score} ({level}).",
+    radarConclusionHighLimited: "The available evidence points consistently in this direction, so {axis} is rated {score} ({level}).",
     radarConclusionLow: "The relevant evidence is concentrated and specific enough to support a {level} rating for {axis}, so it is scored {score}.",
     radarConclusionMid: "Both positive and negative evidence are present; after weighing them, {axis} is rated {score} ({level}).",
     radarNoFinal: "No final score is assigned for this axis.",
@@ -138,6 +140,7 @@ const LABELS = {
     radarEvidence: "雷達評分依據",
     radarSupport: "補充來看，",
     radarConclusionHigh: "這些表現跨越多段情節且方向一致，因此{axis}最終評為{score}分（{level}）。",
+    radarConclusionHighLimited: "現有依據集中指向這一方向，因此{axis}最終評為{score}分（{level}）。",
     radarConclusionLow: "相關表現集中而明確，足以支撐{axis}這一維度評為{level}，因此給{score}分。",
     radarConclusionMid: "正反兩面的表現並存，權衡後{axis}定為{score}分（{level}）。",
     radarNoFinal: "綜合以上依據，這一維度暫不給出最終分數。",
@@ -200,6 +203,7 @@ const LABELS = {
     radarEvidence: "レーダーの根拠",
     radarSupport: "補足すると、",
     radarConclusionHigh: "これらの表現は複数の場面で一貫して現れるため、{axis}は{score}（{level}）と評価しました。",
+    radarConclusionHighLimited: "提示された根拠は一貫して同じ方向を指すため、{axis}は{score}（{level}）と評価しました。",
     radarConclusionLow: "関連する表現は具体的で、{axis}を{level}と評価する根拠になります。そのため{score}としました。",
     radarConclusionMid: "肯定と否定の両方の表現があるため、両者を比べたうえで{axis}は{score}（{level}）と評価しました。",
     radarNoFinal: "以上の根拠から、この項目の最終スコアはまだ決めていません。",
@@ -784,7 +788,14 @@ function renderCharacter(record, labels, index, lang, include) {
       let conclusion = labels.radarNoFinal;
       if (level) {
         const score = Number(axis.value);
-        const key = score <= 4.5 ? "radarConclusionLow" : score <= 5.5 ? "radarConclusionMid" : "radarConclusionHigh";
+        const key =
+          score <= 4.5
+            ? "radarConclusionLow"
+            : score <= 5.5
+            ? "radarConclusionMid"
+            : axis.evidenceTotal >= 2 || norm(main).length >= 80
+            ? "radarConclusionHigh"
+            : "radarConclusionHighLimited";
         conclusion = labels[key]
           .replace("{axis}", axis.label)
           .replace("{level}", level)
