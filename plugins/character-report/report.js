@@ -12,7 +12,8 @@ const LABELS = {
     bioFinally: "到最后，",
     radar: "雷达评分",
     radarEvidence: "雷达评分依据",
-    radarSupport: "补充来看，",
+    radarSupportLink: "此外，",
+    radarSupportQuote: "文中还写到",
     radarConclusionHigh: "这些表现跨越多段情节且方向一致，因此{axis}最终评为{score}分（{level}）。",
     radarConclusionHighLimited: "现有依据集中指向这一方向，因此{axis}最终评为{score}分（{level}）。",
     radarConclusionLow: "相关表现集中而明确，足以支撑{axis}这一维度评为{level}，因此给{score}分。",
@@ -75,7 +76,8 @@ const LABELS = {
     bioFinally: "By the end, ",
     radar: "Radar scores",
     radarEvidence: "Radar evidence",
-    radarSupport: "Additional evidence: ",
+    radarSupportLink: "In addition, ",
+    radarSupportQuote: "the text also notes ",
     radarConclusionHigh: "These patterns recur across multiple parts of the story and point in the same direction, so {axis} is rated {score} ({level}).",
     radarConclusionHighLimited: "The available evidence points consistently in this direction, so {axis} is rated {score} ({level}).",
     radarConclusionLow: "The relevant evidence is concentrated and specific enough to support a {level} rating for {axis}, so it is scored {score}.",
@@ -138,7 +140,8 @@ const LABELS = {
     bioFinally: "到最後，",
     radar: "雷達評分",
     radarEvidence: "雷達評分依據",
-    radarSupport: "補充來看，",
+    radarSupportLink: "此外，",
+    radarSupportQuote: "文中還寫到",
     radarConclusionHigh: "這些表現跨越多段情節且方向一致，因此{axis}最終評為{score}分（{level}）。",
     radarConclusionHighLimited: "現有依據集中指向這一方向，因此{axis}最終評為{score}分（{level}）。",
     radarConclusionLow: "相關表現集中而明確，足以支撐{axis}這一維度評為{level}，因此給{score}分。",
@@ -201,7 +204,8 @@ const LABELS = {
     bioFinally: "終盤には、",
     radar: "レーダースコア",
     radarEvidence: "レーダーの根拠",
-    radarSupport: "補足すると、",
+    radarSupportLink: "さらに、",
+    radarSupportQuote: "本文では",
     radarConclusionHigh: "これらの表現は複数の場面で一貫して現れるため、{axis}は{score}（{level}）と評価しました。",
     radarConclusionHighLimited: "提示された根拠は一貫して同じ方向を指すため、{axis}は{score}（{level}）と評価しました。",
     radarConclusionLow: "関連する表現は具体的で、{axis}を{level}と評価する根拠になります。そのため{score}としました。",
@@ -780,11 +784,19 @@ function renderCharacter(record, labels, index, lang, include) {
       const main = axis.primary || support.join(" ");
       const extra = axis.primary && norm(axis.primary).length < 90 ? support.slice(0, 1) : [];
       const paragraphs = [];
-      if (main) paragraphs.push(`<p>${htmlText(finishSentence(main, lang))}</p>`);
+      let evidence = main ? finishSentence(main, lang) : "";
       if (extra.length) {
         const rest = extra.map((reason) => finishSentence(reason, lang)).join(lang === "en" ? " " : "");
-        paragraphs.push(`<p>${htmlText(labels.radarSupport)}${htmlText(rest)}</p>`);
+        const bridge = /^[「“"‘']/.test(rest) ? labels.radarSupportQuote : labels.radarSupportLink;
+        if (evidence) {
+          const stripped = evidence.replace(/[。！？!?…]\s*$/, "");
+          const sep = lang === "en" ? "; " : lang === "ja" ? "。" : "；";
+          evidence = finishSentence(stripped + sep + bridge + rest, lang);
+        } else {
+          evidence = finishSentence(bridge + rest, lang);
+        }
       }
+      if (evidence) paragraphs.push(`<p>${htmlText(evidence)}</p>`);
       let conclusion = labels.radarNoFinal;
       if (level) {
         const score = Number(axis.value);
