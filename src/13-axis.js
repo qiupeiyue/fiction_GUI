@@ -1122,6 +1122,31 @@
     let dragging = false;
     let pointerId = null;
     let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    const updateTarget = (x, y) => {
+      const axis = el.parentElement;
+      if (!axis) return;
+      const rect = axis.getBoundingClientRect();
+      const rows = Array.from(axis.querySelectorAll(".evaxis-row"));
+      let targetRow = null;
+      rows.forEach((row) => {
+        if (targetRow !== null) return;
+        const rr = row.getBoundingClientRect();
+        const top = rr.top - rect.top;
+        if (y - rect.top < top + rr.height / 2) {
+          targetRow = parseInt(row.dataset.row, 10);
+        }
+      });
+      if (targetRow === null && rows.length) {
+        const lastRow = rows[rows.length - 1];
+        targetRow = parseInt(lastRow.dataset.row, 10) + 1;
+      }
+      el.dataset.targetRow = targetRow === null ? "" : String(targetRow);
+      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
+      const guide = evaxisGuideForBoundary(axis, targetRow);
+      if (guide) guide.classList.add("drop-guide");
+    };
     el.addEventListener("pointerdown", (ev) => {
       if (ev.button !== 0) return;
       if (ev.target.closest("button")) return;
@@ -1141,27 +1166,11 @@
         el.classList.add("band-dragging");
       }
       ev.preventDefault();
-      const axis = el.parentElement;
-      if (!axis) return;
-      const rect = axis.getBoundingClientRect();
-      const rows = Array.from(axis.querySelectorAll(".evaxis-row"));
-      let targetRow = null;
-      rows.forEach((row) => {
-        if (targetRow !== null) return;
-        const rr = row.getBoundingClientRect();
-        const top = rr.top - rect.top;
-        if (ev.clientY - rect.top < top + rr.height / 2) {
-          targetRow = parseInt(row.dataset.row, 10);
-        }
-      });
-      if (targetRow === null && rows.length) {
-        const lastRow = rows[rows.length - 1];
-        targetRow = parseInt(lastRow.dataset.row, 10) + 1;
-      }
-      el.dataset.targetRow = targetRow === null ? "" : String(targetRow);
-      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
-      const guide = evaxisGuideForBoundary(axis, targetRow);
-      if (guide) guide.classList.add("drop-guide");
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+      updateDragAutoScroll(lastX, lastY);
+      setDragAutoScrollTickHook(() => updateTarget(lastX, lastY));
+      updateTarget(lastX, lastY);
     });
     const finish = (ev) => {
       if (pointerId === null) return;
@@ -1171,6 +1180,8 @@
         /* ignore */
       }
       pointerId = null;
+      setDragAutoScrollTickHook(null);
+      stopDragAutoScroll();
       if (!dragging) return;
       dragging = false;
       el.classList.remove("band-dragging");
@@ -1255,6 +1266,18 @@
     let dragging = false;
     let pointerId = null;
     let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    const updateTarget = (x, y) => {
+      const axis = el.parentElement;
+      if (!axis) return;
+      const rect = axis.getBoundingClientRect();
+      const targetRow = bandDragTargetRow(axis, y - rect.top);
+      el.dataset.targetRow = String(targetRow);
+      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
+      const guide = evaxisGuideForBoundary(axis, targetRow);
+      if (guide) guide.classList.add("drop-guide");
+    };
     el.addEventListener("pointerdown", (ev) => {
       if (ev.button !== 0) return;
       if (ev.target.closest("button")) return;
@@ -1274,14 +1297,11 @@
         el.classList.add("band-dragging");
       }
       ev.preventDefault();
-      const axis = el.parentElement;
-      if (!axis) return;
-      const rect = axis.getBoundingClientRect();
-      const targetRow = bandDragTargetRow(axis, ev.clientY - rect.top);
-      el.dataset.targetRow = String(targetRow);
-      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
-      const guide = evaxisGuideForBoundary(axis, targetRow);
-      if (guide) guide.classList.add("drop-guide");
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+      updateDragAutoScroll(lastX, lastY);
+      setDragAutoScrollTickHook(() => updateTarget(lastX, lastY));
+      updateTarget(lastX, lastY);
     });
     const finish = (ev) => {
       if (pointerId === null) return;
@@ -1291,6 +1311,8 @@
         /* ignore */
       }
       pointerId = null;
+      setDragAutoScrollTickHook(null);
+      stopDragAutoScroll();
       if (!dragging) return;
       dragging = false;
       el.classList.remove("band-dragging");
@@ -1324,6 +1346,20 @@
     let dragging = false;
     let pointerId = null;
     let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    const updateTarget = (x, y) => {
+      const axis = el.parentElement;
+      if (!axis) return;
+      const rect = axis.getBoundingClientRect();
+      const rows = Array.from(axis.querySelectorAll(".evaxis-row"));
+      const targetRow = bandDragTargetRow(axis, y - rect.top);
+      el.dataset.targetRow = String(targetRow);
+      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
+      // 落点显示：如果这一行正好是某章/节的起始行，高亮那条分带（而不是它下面的行）
+      const guide = targetRow <= parseInt(rows[rows.length - 1].dataset.row, 10) ? evaxisGuideForBoundary(axis, targetRow) : null;
+      if (guide) guide.classList.add("drop-guide");
+    };
     el.addEventListener("pointerdown", (ev) => {
       if (ev.button !== 0) return;
       if (ev.target.closest("button")) return;
@@ -1343,16 +1379,11 @@
         el.classList.add("band-dragging");
       }
       ev.preventDefault();
-      const axis = el.parentElement;
-      if (!axis) return;
-      const rect = axis.getBoundingClientRect();
-      const rows = Array.from(axis.querySelectorAll(".evaxis-row"));
-      const targetRow = bandDragTargetRow(axis, ev.clientY - rect.top);
-      el.dataset.targetRow = String(targetRow);
-      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
-      // 落点显示：如果这一行正好是某章/节的起始行，高亮那条分带（而不是它下面的行）
-      const guide = targetRow <= parseInt(rows[rows.length - 1].dataset.row, 10) ? evaxisGuideForBoundary(axis, targetRow) : null;
-      if (guide) guide.classList.add("drop-guide");
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+      updateDragAutoScroll(lastX, lastY);
+      setDragAutoScrollTickHook(() => updateTarget(lastX, lastY));
+      updateTarget(lastX, lastY);
     });
     const finish = (ev) => {
       if (pointerId === null) return;
@@ -1362,6 +1393,8 @@
         /* ignore */
       }
       pointerId = null;
+      setDragAutoScrollTickHook(null);
+      stopDragAutoScroll();
       if (!dragging) return;
       dragging = false;
       el.classList.remove("band-dragging");

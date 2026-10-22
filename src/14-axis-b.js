@@ -1810,6 +1810,13 @@
         }
         const card = cardAt(t);
         if (card) {
+          const data = dragDataOf(ev);
+          if (data && data.type === "event" && !card.dataset.memberSetId && !card.dataset.eventSetId) {
+            ev.preventDefault();
+            if (ev.dataTransfer) ev.dataTransfer.dropEffect = "move";
+            card.classList.add("drop-target");
+            return;
+          }
           if (!mergeSelectMode) onEventDragOver(ev, card);
           return;
         }
@@ -1912,6 +1919,42 @@
         }
         const card = cardAt(t);
         if (card) {
+          const data = dragDataOf(ev);
+          if (data && data.type === "event" && !card.dataset.memberSetId && !card.dataset.eventSetId) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const targetEv = getEvent(card.dataset.eventId);
+            const moved = getEvent(data.id);
+            if (targetEv && moved && targetEv.id !== moved.id) {
+              const laneId = laneIdFromX(card.closest(".evaxis-grid") || card, ev.clientX);
+              const targetStory = Number(targetEv.storyIndex) || 0;
+              const groupIds = dragGroupIds ? dragGroupIds.ids.slice() : [];
+              if (applyGroupMove(targetStory, laneId, ev.shiftKey)) {
+                avoidLaneCollision(groupIds);
+                saveState();
+                scheduleDropRender();
+                renderMergeSelectBar();
+                dragState = null;
+                clearDropTargets();
+                return;
+              }
+              const detached = detachEventFromSetIfOutside(moved, targetStory);
+              pendingUndoLabel = detached ? `移出事件集并移动：「${moved.title}」` : `移动事件：「${moved.title}」`;
+              moved.storyIndex = targetStory;
+              applyLaneChange(moved, laneId, ev.shiftKey);
+              avoidLaneCollision([moved.id]);
+              if (syncChaptersForMoved([moved])) {
+                showToast(`「${moved.title}」已跟着落到「${chapterNameOf(moved) || "未分章"}」`);
+              }
+              normalizeStoryIndexesIfFractional();
+              saveState();
+              scheduleDropRender();
+              renderMergeSelectBar();
+            }
+            dragState = null;
+            clearDropTargets();
+            return;
+          }
           onEventDrop(ev, card);
           return;
         }

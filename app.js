@@ -257,6 +257,7 @@ function uiReflowFloatingLayers() {
 规则：
 - 只抽取文本中明确出现的信息，不要编造或补全。
 - type 只能是 character / event / setting / merge / relation 五种。
+- 【事件顺序】records 里的 event 必须严格按它在正文中出现的先后顺序排列；同一段里先写到 / 先发生的事件排在前面，不要把后文事件插到前文事件之前。
 - 【重要度】每个人物必须包含「重要度」字段，值只能是「主要」或「龙套」。龙套＝只出现一两次、没有完整设定、通常没有正式姓名的角色（路人、士兵、卫兵、侍者、围观群众、某位官员、无名商人、群众甲等）。有正式名字且有戏份的用「主要」。
 - 【只被顺带提一句的，别输出】如果某个人物整段文本里只在半句话里出现过（例如「商店老板」「路人甲」「某位士兵」「门口的侍者」），既没有正式名字也没有戏份，就直接不要为他输出 character 记录；某个物品 / 名词如果只是顺带一提、没有任何信息量，也不要输出 setting。宁缺毋滥：漏掉一个无关紧要的路人没关系，冒出一堆没用的路人更糟。
 - 【人物 vs 势力，必须分清】character 只能是个体角色（一个有血有肉、能自己做决定、有心理活动的具体的人）。国家、政权、政党、帮派、军队、军团、教团、教会、公会、商会、公司、家族势力、种族、联盟、起义军、抵抗组织等集体名词，一律不要输出成 character，而要输出成 setting，category 用「势力」。判断方法：它能不能"自己说话、自己做决定、有自己的心理活动"——能的是人物，不能的是势力。
@@ -13544,6 +13545,31 @@ window.addEventListener("resize", () => syncTableScrollProxies());
     let dragging = false;
     let pointerId = null;
     let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    const updateTarget = (x, y) => {
+      const axis = el.parentElement;
+      if (!axis) return;
+      const rect = axis.getBoundingClientRect();
+      const rows = Array.from(axis.querySelectorAll(".evaxis-row"));
+      let targetRow = null;
+      rows.forEach((row) => {
+        if (targetRow !== null) return;
+        const rr = row.getBoundingClientRect();
+        const top = rr.top - rect.top;
+        if (y - rect.top < top + rr.height / 2) {
+          targetRow = parseInt(row.dataset.row, 10);
+        }
+      });
+      if (targetRow === null && rows.length) {
+        const lastRow = rows[rows.length - 1];
+        targetRow = parseInt(lastRow.dataset.row, 10) + 1;
+      }
+      el.dataset.targetRow = targetRow === null ? "" : String(targetRow);
+      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
+      const guide = evaxisGuideForBoundary(axis, targetRow);
+      if (guide) guide.classList.add("drop-guide");
+    };
     el.addEventListener("pointerdown", (ev) => {
       if (ev.button !== 0) return;
       if (ev.target.closest("button")) return;
@@ -13563,27 +13589,11 @@ window.addEventListener("resize", () => syncTableScrollProxies());
         el.classList.add("band-dragging");
       }
       ev.preventDefault();
-      const axis = el.parentElement;
-      if (!axis) return;
-      const rect = axis.getBoundingClientRect();
-      const rows = Array.from(axis.querySelectorAll(".evaxis-row"));
-      let targetRow = null;
-      rows.forEach((row) => {
-        if (targetRow !== null) return;
-        const rr = row.getBoundingClientRect();
-        const top = rr.top - rect.top;
-        if (ev.clientY - rect.top < top + rr.height / 2) {
-          targetRow = parseInt(row.dataset.row, 10);
-        }
-      });
-      if (targetRow === null && rows.length) {
-        const lastRow = rows[rows.length - 1];
-        targetRow = parseInt(lastRow.dataset.row, 10) + 1;
-      }
-      el.dataset.targetRow = targetRow === null ? "" : String(targetRow);
-      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
-      const guide = evaxisGuideForBoundary(axis, targetRow);
-      if (guide) guide.classList.add("drop-guide");
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+      updateDragAutoScroll(lastX, lastY);
+      setDragAutoScrollTickHook(() => updateTarget(lastX, lastY));
+      updateTarget(lastX, lastY);
     });
     const finish = (ev) => {
       if (pointerId === null) return;
@@ -13593,6 +13603,8 @@ window.addEventListener("resize", () => syncTableScrollProxies());
         /* ignore */
       }
       pointerId = null;
+      setDragAutoScrollTickHook(null);
+      stopDragAutoScroll();
       if (!dragging) return;
       dragging = false;
       el.classList.remove("band-dragging");
@@ -13677,6 +13689,18 @@ window.addEventListener("resize", () => syncTableScrollProxies());
     let dragging = false;
     let pointerId = null;
     let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    const updateTarget = (x, y) => {
+      const axis = el.parentElement;
+      if (!axis) return;
+      const rect = axis.getBoundingClientRect();
+      const targetRow = bandDragTargetRow(axis, y - rect.top);
+      el.dataset.targetRow = String(targetRow);
+      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
+      const guide = evaxisGuideForBoundary(axis, targetRow);
+      if (guide) guide.classList.add("drop-guide");
+    };
     el.addEventListener("pointerdown", (ev) => {
       if (ev.button !== 0) return;
       if (ev.target.closest("button")) return;
@@ -13696,14 +13720,11 @@ window.addEventListener("resize", () => syncTableScrollProxies());
         el.classList.add("band-dragging");
       }
       ev.preventDefault();
-      const axis = el.parentElement;
-      if (!axis) return;
-      const rect = axis.getBoundingClientRect();
-      const targetRow = bandDragTargetRow(axis, ev.clientY - rect.top);
-      el.dataset.targetRow = String(targetRow);
-      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
-      const guide = evaxisGuideForBoundary(axis, targetRow);
-      if (guide) guide.classList.add("drop-guide");
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+      updateDragAutoScroll(lastX, lastY);
+      setDragAutoScrollTickHook(() => updateTarget(lastX, lastY));
+      updateTarget(lastX, lastY);
     });
     const finish = (ev) => {
       if (pointerId === null) return;
@@ -13713,6 +13734,8 @@ window.addEventListener("resize", () => syncTableScrollProxies());
         /* ignore */
       }
       pointerId = null;
+      setDragAutoScrollTickHook(null);
+      stopDragAutoScroll();
       if (!dragging) return;
       dragging = false;
       el.classList.remove("band-dragging");
@@ -13746,6 +13769,20 @@ window.addEventListener("resize", () => syncTableScrollProxies());
     let dragging = false;
     let pointerId = null;
     let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    const updateTarget = (x, y) => {
+      const axis = el.parentElement;
+      if (!axis) return;
+      const rect = axis.getBoundingClientRect();
+      const rows = Array.from(axis.querySelectorAll(".evaxis-row"));
+      const targetRow = bandDragTargetRow(axis, y - rect.top);
+      el.dataset.targetRow = String(targetRow);
+      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
+      // 落点显示：如果这一行正好是某章/节的起始行，高亮那条分带（而不是它下面的行）
+      const guide = targetRow <= parseInt(rows[rows.length - 1].dataset.row, 10) ? evaxisGuideForBoundary(axis, targetRow) : null;
+      if (guide) guide.classList.add("drop-guide");
+    };
     el.addEventListener("pointerdown", (ev) => {
       if (ev.button !== 0) return;
       if (ev.target.closest("button")) return;
@@ -13765,16 +13802,11 @@ window.addEventListener("resize", () => syncTableScrollProxies());
         el.classList.add("band-dragging");
       }
       ev.preventDefault();
-      const axis = el.parentElement;
-      if (!axis) return;
-      const rect = axis.getBoundingClientRect();
-      const rows = Array.from(axis.querySelectorAll(".evaxis-row"));
-      const targetRow = bandDragTargetRow(axis, ev.clientY - rect.top);
-      el.dataset.targetRow = String(targetRow);
-      axis.querySelectorAll(".evaxis-row.drop-guide, .evaxis-band.drop-guide, .evaxis-insert.drop-guide").forEach((x) => x.classList.remove("drop-guide"));
-      // 落点显示：如果这一行正好是某章/节的起始行，高亮那条分带（而不是它下面的行）
-      const guide = targetRow <= parseInt(rows[rows.length - 1].dataset.row, 10) ? evaxisGuideForBoundary(axis, targetRow) : null;
-      if (guide) guide.classList.add("drop-guide");
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+      updateDragAutoScroll(lastX, lastY);
+      setDragAutoScrollTickHook(() => updateTarget(lastX, lastY));
+      updateTarget(lastX, lastY);
     });
     const finish = (ev) => {
       if (pointerId === null) return;
@@ -13784,6 +13816,8 @@ window.addEventListener("resize", () => syncTableScrollProxies());
         /* ignore */
       }
       pointerId = null;
+      setDragAutoScrollTickHook(null);
+      stopDragAutoScroll();
       if (!dragging) return;
       dragging = false;
       el.classList.remove("band-dragging");
@@ -16403,6 +16437,13 @@ window.addEventListener("resize", () => syncTableScrollProxies());
         }
         const card = cardAt(t);
         if (card) {
+          const data = dragDataOf(ev);
+          if (data && data.type === "event" && !card.dataset.memberSetId && !card.dataset.eventSetId) {
+            ev.preventDefault();
+            if (ev.dataTransfer) ev.dataTransfer.dropEffect = "move";
+            card.classList.add("drop-target");
+            return;
+          }
           if (!mergeSelectMode) onEventDragOver(ev, card);
           return;
         }
@@ -16505,6 +16546,42 @@ window.addEventListener("resize", () => syncTableScrollProxies());
         }
         const card = cardAt(t);
         if (card) {
+          const data = dragDataOf(ev);
+          if (data && data.type === "event" && !card.dataset.memberSetId && !card.dataset.eventSetId) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const targetEv = getEvent(card.dataset.eventId);
+            const moved = getEvent(data.id);
+            if (targetEv && moved && targetEv.id !== moved.id) {
+              const laneId = laneIdFromX(card.closest(".evaxis-grid") || card, ev.clientX);
+              const targetStory = Number(targetEv.storyIndex) || 0;
+              const groupIds = dragGroupIds ? dragGroupIds.ids.slice() : [];
+              if (applyGroupMove(targetStory, laneId, ev.shiftKey)) {
+                avoidLaneCollision(groupIds);
+                saveState();
+                scheduleDropRender();
+                renderMergeSelectBar();
+                dragState = null;
+                clearDropTargets();
+                return;
+              }
+              const detached = detachEventFromSetIfOutside(moved, targetStory);
+              pendingUndoLabel = detached ? `移出事件集并移动：「${moved.title}」` : `移动事件：「${moved.title}」`;
+              moved.storyIndex = targetStory;
+              applyLaneChange(moved, laneId, ev.shiftKey);
+              avoidLaneCollision([moved.id]);
+              if (syncChaptersForMoved([moved])) {
+                showToast(`「${moved.title}」已跟着落到「${chapterNameOf(moved) || "未分章"}」`);
+              }
+              normalizeStoryIndexesIfFractional();
+              saveState();
+              scheduleDropRender();
+              renderMergeSelectBar();
+            }
+            dragState = null;
+            clearDropTargets();
+            return;
+          }
           onEventDrop(ev, card);
           return;
         }
@@ -17147,8 +17224,16 @@ window.addEventListener("resize", () => syncTableScrollProxies());
 
   /* ================= 拖动到页面边缘时自动滚动 ================= */
   let dragAutoScrollBound = false;
+  let dragAutoScrollTickHook = null;
 
   function scrollableAncestorAt(x, y) {
+    // 事件轴 / 章节线的拖拽都发生在 .timeline-wrap 里。直接点名这个滚动容器，
+    // 不依赖 elementFromPoint（HTML5 拖拽 / pointer capture 时它可能拿到别的层）。
+    const timelineWrap = document.querySelector("#view-timeline:not([hidden]) .timeline-wrap");
+    if (timelineWrap) {
+      const tr = timelineWrap.getBoundingClientRect();
+      if (x >= tr.left && x <= tr.right && y >= tr.top && y <= tr.bottom) return timelineWrap;
+    }
     let el = document.elementFromPoint(x, y);
     while (el && el !== document.body) {
       const st = getComputedStyle(el);
@@ -17173,6 +17258,13 @@ window.addEventListener("resize", () => syncTableScrollProxies());
     if (!dy) return;
     if (isDoc) window.scrollBy(0, dy);
     else scroller.scrollTop += dy;
+    if (dragAutoScrollTickHook) {
+      try {
+        dragAutoScrollTickHook(x, y);
+      } catch (e) {
+        /* ignore */
+      }
+    }
     const mini = scrollMinimaps.get(scroller);
     if (mini) {
       updateScrollMinimap(scroller, mini, true);
@@ -17190,6 +17282,11 @@ window.addEventListener("resize", () => syncTableScrollProxies());
     dragAutoScrollPoint = null;
     if (dragAutoScrollRaf) cancelAnimationFrame(dragAutoScrollRaf);
     dragAutoScrollRaf = 0;
+    dragAutoScrollTickHook = null;
+  }
+
+  function setDragAutoScrollTickHook(fn) {
+    dragAutoScrollTickHook = typeof fn === "function" ? fn : null;
   }
 
   function bindDragAutoScroll() {
@@ -17197,6 +17294,13 @@ window.addEventListener("resize", () => syncTableScrollProxies());
     dragAutoScrollBound = true;
     document.addEventListener(
       "dragover",
+      (ev) => {
+        if (typeof ev.clientX === "number" && typeof ev.clientY === "number") updateDragAutoScroll(ev.clientX, ev.clientY);
+      },
+      true
+    );
+    document.addEventListener(
+      "drag",
       (ev) => {
         if (typeof ev.clientX === "number" && typeof ev.clientY === "number") updateDragAutoScroll(ev.clientX, ev.clientY);
       },
@@ -24349,14 +24453,33 @@ window.addEventListener("resize", () => syncTableScrollProxies());
 
   // 新事件落在它所属章节的时间段里，而不是一律追加到全部事件末尾
   // —— 这样逐章增量分析（甚至并发）也不会把故事顺序弄乱
-  function insertStoryIndexFor(chapterId) {
+  function insertStoryIndexFor(chapterId, record) {
     const chapters = state.chapters || [];
     const ci = chapterId ? chapters.findIndex((c) => c.id === chapterId) : -1;
     let v = nextStoryIndex(); // 默认兜底：追加到末尾
+    const sourceSeq = record && typeof record.seq === "number" ? record.seq : null;
     if (ci >= 0) {
-      const own = state.events.filter((e) => e.chapterId === chapterId);
+      const own = state.events
+        .filter((e) => e.chapterId === chapterId)
+        .sort((a, b) => (a.storyIndex || 0) - (b.storyIndex || 0));
       if (own.length) {
-        v = Math.max.apply(null, own.map((e) => e.storyIndex || 0)) + 0.001;
+        /* 同一章可能是分几次分析 / 补跑失败块填进来的。不能一律追加到章末，
+           否则先填了后面的小节、再补前面的小节时，事件顺序会颠倒。
+           新结果带 sourceSeq（分析分块顺序号）：插到第一条 sourceSeq 更大的事件前面。 */
+        const after =
+          sourceSeq == null
+            ? null
+            : own.find((e) => typeof e.sourceSeq === "number" && e.sourceSeq > sourceSeq);
+        if (after) {
+          const before = own
+            .filter((e) => (e.storyIndex || 0) < (after.storyIndex || 0))
+            .sort((a, b) => (b.storyIndex || 0) - (a.storyIndex || 0))[0];
+          v = before
+            ? ((Number(before.storyIndex) || 0) + (Number(after.storyIndex) || 0)) / 2
+            : (Number(after.storyIndex) || 0) - 0.001;
+        } else {
+          v = Math.max.apply(null, own.map((e) => e.storyIndex || 0)) + 0.001;
+        }
       } else {
         // 本章还没有事件：接在前一章最后一个事件之后
         let placed = false;
@@ -43758,6 +43881,9 @@ window.addEventListener("resize", () => syncTableScrollProxies());
         existing.sourceSegIds = cur;
         if (!existing.sourceSegId) existing.sourceSegId = segIds[0];
       }
+      if (typeof r.seq === "number" && (typeof existing.sourceSeq !== "number" || r.seq < existing.sourceSeq)) {
+        existing.sourceSeq = r.seq;
+      }
       return existing;
     }
     const place = placeForSource(r.source, r.fileId, { segId: r.segId });
@@ -43788,7 +43914,7 @@ window.addEventListener("resize", () => syncTableScrollProxies());
       notes: r.summary || "",
       characterIds: ids,
       lineIds: [lineFilterDefaultId()],
-      storyIndex: insertStoryIndexFor(place.chapterId),
+      storyIndex: insertStoryIndexFor(place.chapterId, r),
       narrative: normNarrative(fieldValue(r, "叙事")),
       chapterId: place.chapterId,
       sectionId: place.sectionId,
@@ -43796,6 +43922,7 @@ window.addEventListener("resize", () => syncTableScrollProxies());
       sourceFileId: r.fileId || "",
       sourceSegId: segIds[0] || "",
       sourceSegIds: segIds,
+      sourceSeq: typeof r.seq === "number" ? r.seq : null,
     };
     state.events.push(ev);
     state.order.push(ev.id);
@@ -44129,19 +44256,19 @@ async function fillTaskRecords(task, records, label) {
       buildChaptersFromSegments();
     }
     // 再把事件会用到的章节建齐并按章号排序，保证新事件落在正确的时间段
-    included
-      .filter((r) => r.type === "event" && r.source)
+    const eventRecords = included.filter((r) => r.type === "event");
+    eventRecords.sort((a, b) => resultOrderKey(task, a) - resultOrderKey(task, b));
+    eventRecords
+      .filter((r) => r.source)
       .forEach((r) => {
         placeForSource(r.source, r.fileId, { segId: r.segId });
       });
     sortChaptersNaturally();
-    included
-      .filter((r) => r.type === "event")
-      .forEach((r) => {
-        addEventFromRecord(r);
-        ce++;
-        filledResults.add(r);
-      });
+    eventRecords.forEach((r) => {
+      addEventFromRecord(r);
+      ce++;
+      filledResults.add(r);
+    });
     included
       .filter((r) => r.type === "setting")
       .forEach((r) => {
@@ -56498,6 +56625,7 @@ hr.scene-break { border: 0; border-top: 1px solid #ccc; width: 32%; margin: 1.8e
   const SELECT_SCOPES = [
     {
       sel: "#char-pane",
+      panes: ["char"],
       on: () => batchMode,
       off: () => {
         batchMode = false;
@@ -56508,6 +56636,7 @@ hr.scene-break { border: 0; border-top: 1px solid #ccc; width: 32%; margin: 1.8e
     },
     {
       sel: ".entry-pane",
+      panes: ["entry"],
       on: () => entryBatchMode,
       off: () => {
         entryBatchMode = false;
@@ -56518,6 +56647,7 @@ hr.scene-break { border: 0; border-top: 1px solid #ccc; width: 32%; margin: 1.8e
     },
     {
       sel: ".timeline-body, #matrix, .matrix-wrap, #chrono-list, .chrono-body, #merge-select-bar",
+      panes: ["event", "matrix"],
       on: () => mergeSelectMode,
       off: () => {
         mergeSelectMode = false;
@@ -56532,6 +56662,7 @@ hr.scene-break { border: 0; border-top: 1px solid #ccc; width: 32%; margin: 1.8e
     },
     {
       sel: "#tree-pane",
+      panes: [],
       on: () => treePaneState.batch || treePaneState.batchPick || treePaneState.linkPick || treePaneState.sel.size > 0,
       off: () => {
         treePaneState.batch = false;
@@ -56543,6 +56674,7 @@ hr.scene-break { border: 0; border-top: 1px solid #ccc; width: 32%; margin: 1.8e
     },
     {
       sel: "#view-pedigree",
+      panes: [],
       on: () => pedSel.size > 0,
       off: () => {
         pedSel = new Set();
@@ -56551,6 +56683,7 @@ hr.scene-break { border: 0; border-top: 1px solid #ccc; width: 32%; margin: 1.8e
     },
     {
       sel: "#view-radar",
+      panes: ["radar"],
       on: () => radarBatchMode || radarSelected.size > 0,
       off: () => {
         radarBatchMode = false;
@@ -56560,6 +56693,7 @@ hr.scene-break { border: 0; border-top: 1px solid #ccc; width: 32%; margin: 1.8e
     },
     {
       sel: "#view-faction",
+      panes: ["faction"],
       on: () => factionBatchMode || factionSel.size > 0,
       off: () => {
         factionBatchMode = false;
@@ -56574,14 +56708,23 @@ hr.scene-break { border: 0; border-top: 1px solid #ccc; width: 32%; margin: 1.8e
      拓扑栏的批量就别退）。返回有没有真的退掉东西。 */
   function exitAllSelectModes(quiet, keep) {
     let did = false;
+    const keptPanes = new Set();
+    const resetPanes = new Set();
     SELECT_SCOPES.forEach((s) => {
       if (!s.on()) return;
-      if (keep && keep(s.sel)) return;
+      if (keep && keep(s.sel)) {
+        (s.panes || []).forEach((p) => keptPanes.add(p));
+        return;
+      }
       s.off();
       did = true;
+      (s.panes || []).forEach((p) => resetPanes.add(p));
     });
-    // 快捷键的锚点 / 基准一并清掉，免得 Ctrl+A、方向键还停在上一个界面
-    ["event", "matrix", "char", "entry", "result", "radar", "faction"].forEach((p) => resetShortcutBase(p, null));
+    /* 只清掉**真正退出**的那几栏的锚点。以前这里无条件清所有栏，
+       点第二张卡时捕获阶段先把 Shift 连选锚点清空，shiftClickCard 就只能选中这一张。 */
+    ["event", "matrix", "char", "entry", "result", "radar", "faction"].forEach((p) => {
+      if (resetPanes.has(p) && !keptPanes.has(p)) resetShortcutBase(p, null);
+    });
     if (did && !quiet) showToast("已退出多选");
     return did;
   }

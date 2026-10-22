@@ -14400,3 +14400,17 @@ body.novel-preview-resizing-row * {
 #view-novel .view-head-actions .novel-progress {
   white-space: nowrap;
 }
+
+/* 事件卡可以整张拖动：别让后面的「可点击文字用 pointer」规则把抓手光标盖掉。 */
+#timeline .event-card {
+  cursor: grab;
+}
+
+#timeline .event-card:active {
+  cursor: grabbing;
+}
+
+#timeline .event-card button,
+#timeline .event-card .chip-x {
+  cursor: pointer;
+}

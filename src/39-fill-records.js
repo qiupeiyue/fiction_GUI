@@ -381,6 +381,9 @@
         existing.sourceSegIds = cur;
         if (!existing.sourceSegId) existing.sourceSegId = segIds[0];
       }
+      if (typeof r.seq === "number" && (typeof existing.sourceSeq !== "number" || r.seq < existing.sourceSeq)) {
+        existing.sourceSeq = r.seq;
+      }
       return existing;
     }
     const place = placeForSource(r.source, r.fileId, { segId: r.segId });
@@ -411,7 +414,7 @@
       notes: r.summary || "",
       characterIds: ids,
       lineIds: [lineFilterDefaultId()],
-      storyIndex: insertStoryIndexFor(place.chapterId),
+      storyIndex: insertStoryIndexFor(place.chapterId, r),
       narrative: normNarrative(fieldValue(r, "叙事")),
       chapterId: place.chapterId,
       sectionId: place.sectionId,
@@ -419,6 +422,7 @@
       sourceFileId: r.fileId || "",
       sourceSegId: segIds[0] || "",
       sourceSegIds: segIds,
+      sourceSeq: typeof r.seq === "number" ? r.seq : null,
     };
     state.events.push(ev);
     state.order.push(ev.id);
@@ -752,19 +756,19 @@ async function fillTaskRecords(task, records, label) {
       buildChaptersFromSegments();
     }
     // 再把事件会用到的章节建齐并按章号排序，保证新事件落在正确的时间段
-    included
-      .filter((r) => r.type === "event" && r.source)
+    const eventRecords = included.filter((r) => r.type === "event");
+    eventRecords.sort((a, b) => resultOrderKey(task, a) - resultOrderKey(task, b));
+    eventRecords
+      .filter((r) => r.source)
       .forEach((r) => {
         placeForSource(r.source, r.fileId, { segId: r.segId });
       });
     sortChaptersNaturally();
-    included
-      .filter((r) => r.type === "event")
-      .forEach((r) => {
-        addEventFromRecord(r);
-        ce++;
-        filledResults.add(r);
-      });
+    eventRecords.forEach((r) => {
+      addEventFromRecord(r);
+      ce++;
+      filledResults.add(r);
+    });
     included
       .filter((r) => r.type === "setting")
       .forEach((r) => {

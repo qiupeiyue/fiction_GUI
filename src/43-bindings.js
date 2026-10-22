@@ -1681,6 +1681,7 @@
   const SELECT_SCOPES = [
     {
       sel: "#char-pane",
+      panes: ["char"],
       on: () => batchMode,
       off: () => {
         batchMode = false;
@@ -1691,6 +1692,7 @@
     },
     {
       sel: ".entry-pane",
+      panes: ["entry"],
       on: () => entryBatchMode,
       off: () => {
         entryBatchMode = false;
@@ -1701,6 +1703,7 @@
     },
     {
       sel: ".timeline-body, #matrix, .matrix-wrap, #chrono-list, .chrono-body, #merge-select-bar",
+      panes: ["event", "matrix"],
       on: () => mergeSelectMode,
       off: () => {
         mergeSelectMode = false;
@@ -1715,6 +1718,7 @@
     },
     {
       sel: "#tree-pane",
+      panes: [],
       on: () => treePaneState.batch || treePaneState.batchPick || treePaneState.linkPick || treePaneState.sel.size > 0,
       off: () => {
         treePaneState.batch = false;
@@ -1726,6 +1730,7 @@
     },
     {
       sel: "#view-pedigree",
+      panes: [],
       on: () => pedSel.size > 0,
       off: () => {
         pedSel = new Set();
@@ -1734,6 +1739,7 @@
     },
     {
       sel: "#view-radar",
+      panes: ["radar"],
       on: () => radarBatchMode || radarSelected.size > 0,
       off: () => {
         radarBatchMode = false;
@@ -1743,6 +1749,7 @@
     },
     {
       sel: "#view-faction",
+      panes: ["faction"],
       on: () => factionBatchMode || factionSel.size > 0,
       off: () => {
         factionBatchMode = false;
@@ -1757,14 +1764,23 @@
      拓扑栏的批量就别退）。返回有没有真的退掉东西。 */
   function exitAllSelectModes(quiet, keep) {
     let did = false;
+    const keptPanes = new Set();
+    const resetPanes = new Set();
     SELECT_SCOPES.forEach((s) => {
       if (!s.on()) return;
-      if (keep && keep(s.sel)) return;
+      if (keep && keep(s.sel)) {
+        (s.panes || []).forEach((p) => keptPanes.add(p));
+        return;
+      }
       s.off();
       did = true;
+      (s.panes || []).forEach((p) => resetPanes.add(p));
     });
-    // 快捷键的锚点 / 基准一并清掉，免得 Ctrl+A、方向键还停在上一个界面
-    ["event", "matrix", "char", "entry", "result", "radar", "faction"].forEach((p) => resetShortcutBase(p, null));
+    /* 只清掉**真正退出**的那几栏的锚点。以前这里无条件清所有栏，
+       点第二张卡时捕获阶段先把 Shift 连选锚点清空，shiftClickCard 就只能选中这一张。 */
+    ["event", "matrix", "char", "entry", "result", "radar", "faction"].forEach((p) => {
+      if (resetPanes.has(p) && !keptPanes.has(p)) resetShortcutBase(p, null);
+    });
     if (did && !quiet) showToast("已退出多选");
     return did;
   }

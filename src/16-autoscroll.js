@@ -1,7 +1,15 @@
   /* ================= 拖动到页面边缘时自动滚动 ================= */
   let dragAutoScrollBound = false;
+  let dragAutoScrollTickHook = null;
 
   function scrollableAncestorAt(x, y) {
+    // 事件轴 / 章节线的拖拽都发生在 .timeline-wrap 里。直接点名这个滚动容器，
+    // 不依赖 elementFromPoint（HTML5 拖拽 / pointer capture 时它可能拿到别的层）。
+    const timelineWrap = document.querySelector("#view-timeline:not([hidden]) .timeline-wrap");
+    if (timelineWrap) {
+      const tr = timelineWrap.getBoundingClientRect();
+      if (x >= tr.left && x <= tr.right && y >= tr.top && y <= tr.bottom) return timelineWrap;
+    }
     let el = document.elementFromPoint(x, y);
     while (el && el !== document.body) {
       const st = getComputedStyle(el);
@@ -26,6 +34,13 @@
     if (!dy) return;
     if (isDoc) window.scrollBy(0, dy);
     else scroller.scrollTop += dy;
+    if (dragAutoScrollTickHook) {
+      try {
+        dragAutoScrollTickHook(x, y);
+      } catch (e) {
+        /* ignore */
+      }
+    }
     const mini = scrollMinimaps.get(scroller);
     if (mini) {
       updateScrollMinimap(scroller, mini, true);
@@ -43,6 +58,11 @@
     dragAutoScrollPoint = null;
     if (dragAutoScrollRaf) cancelAnimationFrame(dragAutoScrollRaf);
     dragAutoScrollRaf = 0;
+    dragAutoScrollTickHook = null;
+  }
+
+  function setDragAutoScrollTickHook(fn) {
+    dragAutoScrollTickHook = typeof fn === "function" ? fn : null;
   }
 
   function bindDragAutoScroll() {
@@ -50,6 +70,13 @@
     dragAutoScrollBound = true;
     document.addEventListener(
       "dragover",
+      (ev) => {
+        if (typeof ev.clientX === "number" && typeof ev.clientY === "number") updateDragAutoScroll(ev.clientX, ev.clientY);
+      },
+      true
+    );
+    document.addEventListener(
+      "drag",
       (ev) => {
         if (typeof ev.clientX === "number" && typeof ev.clientY === "number") updateDragAutoScroll(ev.clientX, ev.clientY);
       },

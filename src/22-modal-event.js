@@ -501,14 +501,33 @@
 
   // 新事件落在它所属章节的时间段里，而不是一律追加到全部事件末尾
   // —— 这样逐章增量分析（甚至并发）也不会把故事顺序弄乱
-  function insertStoryIndexFor(chapterId) {
+  function insertStoryIndexFor(chapterId, record) {
     const chapters = state.chapters || [];
     const ci = chapterId ? chapters.findIndex((c) => c.id === chapterId) : -1;
     let v = nextStoryIndex(); // 默认兜底：追加到末尾
+    const sourceSeq = record && typeof record.seq === "number" ? record.seq : null;
     if (ci >= 0) {
-      const own = state.events.filter((e) => e.chapterId === chapterId);
+      const own = state.events
+        .filter((e) => e.chapterId === chapterId)
+        .sort((a, b) => (a.storyIndex || 0) - (b.storyIndex || 0));
       if (own.length) {
-        v = Math.max.apply(null, own.map((e) => e.storyIndex || 0)) + 0.001;
+        /* 同一章可能是分几次分析 / 补跑失败块填进来的。不能一律追加到章末，
+           否则先填了后面的小节、再补前面的小节时，事件顺序会颠倒。
+           新结果带 sourceSeq（分析分块顺序号）：插到第一条 sourceSeq 更大的事件前面。 */
+        const after =
+          sourceSeq == null
+            ? null
+            : own.find((e) => typeof e.sourceSeq === "number" && e.sourceSeq > sourceSeq);
+        if (after) {
+          const before = own
+            .filter((e) => (e.storyIndex || 0) < (after.storyIndex || 0))
+            .sort((a, b) => (b.storyIndex || 0) - (a.storyIndex || 0))[0];
+          v = before
+            ? ((Number(before.storyIndex) || 0) + (Number(after.storyIndex) || 0)) / 2
+            : (Number(after.storyIndex) || 0) - 0.001;
+        } else {
+          v = Math.max.apply(null, own.map((e) => e.storyIndex || 0)) + 0.001;
+        }
       } else {
         // 本章还没有事件：接在前一章最后一个事件之后
         let placed = false;
