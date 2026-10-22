@@ -1,0 +1,3 @@
+# Optional mirrors for users in mainland China. Copy to .npmrc if needed.
+electron_mirror=https://npmmirror.com/mirrors/electron/
+electron_builder_binaries_mirror=https://npmmirror.com/mirrors/electron-builder-binaries/

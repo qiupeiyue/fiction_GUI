@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>人物档案 PDF</title>
+  <link rel="stylesheet" href="ui.css">
+  <script src="ui.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <img class="brand-logo" id="brand-logo" src="../../logo_adaa.ico" alt="">
+      <div class="hero-copy">
+        <h1 id="app-title">人物档案 PDF</h1>
+        <p id="app-subtitle">从导出的 JSON 生成</p>
+      </div>
+    </header>
+
+    <section class="panel">
+      <label class="field" for="input-path">
+        <span class="field-label" data-i18n="jsonLabel">小说 JSON</span>
+        <span class="path-row">
+          <input id="input-path" type="text" autocomplete="off" spellcheck="false" placeholder="选择导出的 .json 文件">
+          <button id="pick-json" class="btn" type="button" data-i18n="choose">选择…</button>
+        </span>
+      </label>
+
+      <label class="field" for="output-path">
+        <span class="field-label" data-i18n="outputLabel">输出 PDF</span>
+        <span class="path-row">
+          <input id="output-path" type="text" autocomplete="off" spellcheck="false" placeholder="选择保存位置">
+          <button id="pick-output" class="btn" type="button" data-i18n="choose">选择…</button>
+        </span>
+      </label>
+
+      <div class="field language-field">
+        <span class="field-label" data-i18n="languageLabel">报告语言</span>
+        <div class="select-wrap">
+          <button id="lang-button" class="ui-select" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span id="lang-value"></span>
+            <span class="ui-select-caret" aria-hidden="true"></span>
+          </button>
+          <div id="lang-panel" class="ui-select-panel" role="listbox" hidden></div>
+        </div>
+      </div>
+
+      <fieldset class="content-group">
+        <legend class="field-label" data-i18n="contentLabel">报告内容</legend>
+        <div class="checks">
+          <label class="check">
+            <input id="include-fields" type="checkbox" checked>
+            <span data-i18n="includeFields">基本信息</span>
+          </label>
+          <label class="check">
+            <input id="include-relations" type="checkbox" checked>
+            <span data-i18n="includeRelations">人物关系</span>
+          </label>
+          <label class="check">
+            <input id="include-trajectory" type="checkbox" checked>
+            <span data-i18n="includeTrajectory">人物小传</span>
+          </label>
+          <label class="check">
+            <input id="include-radar" type="checkbox" checked>
+            <span data-i18n="includeRadar">雷达评分与依据</span>
+          </label>
+          <label class="check">
+            <input id="include-analysis" type="checkbox" checked>
+            <span data-i18n="includeAnalysis">分析摘要</span>
+          </label>
+          <label class="check">
+            <input id="include-toc" type="checkbox" checked>
+            <span data-i18n="includeToc">目录</span>
+          </label>
+        </div>
+      </fieldset>
+    </section>
+
+    <footer class="footer">
+      <div class="status" id="status" role="status" aria-live="polite">
+        <span class="spinner" id="spinner" hidden aria-hidden="true"></span>
+        <div class="status-copy">
+          <div id="status-text"></div>
+          <div class="status-detail" id="status-detail" hidden></div>
+        </div>
+      </div>
+      <p class="note" data-i18n="note">只读 JSON，不修改工作区。</p>
+      <div class="actions">
+        <button id="reveal" class="btn btn-quiet" type="button" hidden data-i18n="reveal">打开所在文件夹</button>
+        <button id="close" class="btn" type="button" data-i18n="close">关闭</button>
+        <button id="generate" class="btn btn-primary" type="button" data-i18n="generate">生成 PDF</button>
+      </div>
+    </footer>
+  </main>
+</body>
+</html>

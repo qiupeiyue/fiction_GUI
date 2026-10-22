@@ -1,0 +1,44 @@
+# Dependencies and local build output
+node_modules/
+wrap2exe/node_modules/
+wrap2exe/dist/
+wrap2exe/build/
+wrap2exe/index.html
+wrap2exe/app.js
+wrap2exe/styles.css
+wrap2exe/logo_adaa.ico
+wrap2exe/vendor/
+wrap2exe/LICENSE
+wrap2exe/THIRD_PARTY_NOTICES.md
+wrap2exe/TRADEMARK.md
+tools/.buildhash
+
+# Credentials and machine-specific configuration
+wrap2exe/.release-token
+wrap2exe/.npmrc
+.env
+.env.*
+*.pem
+*.key
+
+# User data and generated exports
+output/
+history/
+
+# Internal development notes
+AGENTS.md
+HANDOFF.md
+
+# One-off migration artifacts
+tools/app.js.orig
+tools/pruned-backup/
+tools/prune-report.txt
+tools/removed-code.txt
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log

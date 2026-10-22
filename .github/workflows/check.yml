@@ -1,0 +1,33 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-check:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: wrap2exe/package-lock.json
+      - name: Install desktop dependencies
+        working-directory: wrap2exe
+        run: npm ci
+      - name: Build app.js
+        run: node tools/build.js --force
+      - name: Check generated app
+        run: node --check app.js
+      - name: Check radar evidence
+        run: node tools/check-radar-evidence.js
+      - name: Check character report plugin
+        run: |
+          node --check plugins/character-report/main.js
+          node --check plugins/character-report/preload.js
+          node --check plugins/character-report/report.js
+          node --check plugins/character-report/run.js
+          node --check plugins/character-report/ui.js

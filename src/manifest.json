@@ -1,0 +1,366 @@
+[
+  {
+    "file": "00-prelude.js",
+    "title": "IIFE 开头 / 常量 / esc / 小工具",
+    "start": 1,
+    "end": 424,
+    "lines": 424
+  },
+  {
+    "file": "01-utils.js",
+    "title": "工具函数",
+    "start": 425,
+    "end": 508,
+    "lines": 84
+  },
+  {
+    "file": "02-store.js",
+    "title": "数据：state / 存取 / IndexedDB / 历史镜像",
+    "start": 509,
+    "end": 1571,
+    "lines": 1063
+  },
+  {
+    "file": "03-undo.js",
+    "title": "撤销 / 恢复",
+    "start": 1572,
+    "end": 1727,
+    "lines": 156
+  },
+  {
+    "file": "04-dialogs.js",
+    "title": "应用内对话框（prompt / confirm / alert / choose）",
+    "start": 1728,
+    "end": 2692,
+    "lines": 965
+  },
+  {
+    "file": "05-ui-common.js",
+    "title": "通用渲染：颜色选择、人物池",
+    "start": 2693,
+    "end": 3098,
+    "lines": 406
+  },
+  {
+    "file": "06-characters.js",
+    "title": "人物卡 / 分组 / 批量",
+    "start": 3099,
+    "end": 4140,
+    "lines": 1042
+  },
+  {
+    "file": "07-char-chains.js",
+    "title": "人物链 ↔「链接」关系",
+    "start": 4141,
+    "end": 4485,
+    "lines": 345
+  },
+  {
+    "file": "08-group-drag.js",
+    "title": "分组标题拖动排序",
+    "start": 4486,
+    "end": 5815,
+    "lines": 1330
+  },
+  {
+    "file": "09-merge-tips.js",
+    "title": "自动合并弹窗与悬浮说明",
+    "start": 5816,
+    "end": 6595,
+    "lines": 780
+  },
+  {
+    "file": "10-event-lines.js",
+    "title": "批量改事件所属线路 / 清单式弹窗",
+    "start": 6596,
+    "end": 8191,
+    "lines": 1596
+  },
+  {
+    "file": "11-chapters.js",
+    "title": "章 / 节",
+    "start": 8192,
+    "end": 9564,
+    "lines": 1373
+  },
+  {
+    "file": "12-lines.js",
+    "title": "线路",
+    "start": 9565,
+    "end": 9785,
+    "lines": 221
+  },
+  {
+    "file": "13-axis.js",
+    "title": "事件轴（含事件检索）",
+    "start": 9786,
+    "end": 11960,
+    "lines": 2175
+  },
+  {
+    "file": "14-axis-b.js",
+    "title": "事件轴（含事件检索）（续）",
+    "start": 11961,
+    "end": 14139,
+    "lines": 2179
+  },
+  {
+    "file": "15-drag.js",
+    "title": "拖拽（占位块 / 落点）",
+    "start": 14140,
+    "end": 14450,
+    "lines": 311
+  },
+  {
+    "file": "16-autoscroll.js",
+    "title": "拖动到页面边缘自动滚动",
+    "start": 14451,
+    "end": 14510,
+    "lines": 60
+  },
+  {
+    "file": "17-minimap.js",
+    "title": "滚动位置小地图",
+    "start": 14511,
+    "end": 14896,
+    "lines": 386
+  },
+  {
+    "file": "18-chrono.js",
+    "title": "时间线视图",
+    "start": 14897,
+    "end": 16623,
+    "lines": 1727
+  },
+  {
+    "file": "19-chrono-time.js",
+    "title": "时间线的「时间」解析（中文数字 / 年月日 / 相对说法）",
+    "lines": 0
+  },
+  {
+    "file": "19-faction-detect.js",
+    "title": "势力识别（误判人物 → 设定）",
+    "start": 16624,
+    "end": 16907,
+    "lines": 284
+  },
+  {
+    "file": "20-entries.js",
+    "title": "设定档案（类别 / 条目 / 排序 / 批量）",
+    "start": 16908,
+    "end": 18415,
+    "lines": 1508
+  },
+  {
+    "file": "21-modal-char.js",
+    "title": "弹窗：人物（含图片裁剪、字段）",
+    "start": 18416,
+    "end": 19172,
+    "lines": 757
+  },
+  {
+    "file": "22-modal-event.js",
+    "title": "弹窗：事件",
+    "start": 19173,
+    "end": 19771,
+    "lines": 599
+  },
+  {
+    "file": "23-modals-other.js",
+    "title": "弹窗：线路 / 类别 / 条目",
+    "start": 19772,
+    "end": 20171,
+    "lines": 400
+  },
+  {
+    "file": "24-rel-graph.js",
+    "title": "关系图渲染",
+    "start": 20172,
+    "end": 20269,
+    "lines": 98
+  },
+  {
+    "file": "25-ai-fill.js",
+    "title": "AI 自动更新（设定档案 / 势力分析）",
+    "start": 20270,
+    "end": 21758,
+    "lines": 1489
+  },
+  {
+    "file": "26-ai-fill-b.js",
+    "title": "AI 自动更新（设定档案 / 势力分析）（续）",
+    "start": 21759,
+    "end": 23253,
+    "lines": 1495
+  },
+  {
+    "file": "27-char-analysis.js",
+    "title": "人物分析 / 出场统计 / 雷达分析",
+    "start": 23254,
+    "end": 24038,
+    "lines": 785
+  },
+  {
+    "file": "28-text-analysis.js",
+    "title": "文本分析（导入 / 分段 / 进度 / 回填）",
+    "start": 24039,
+    "end": 26629,
+    "lines": 2591
+  },
+  {
+    "file": "29-text-analysis-b.js",
+    "title": "文本分析（导入 / 分段 / 进度 / 回填）（续）",
+    "start": 26630,
+    "end": 29209,
+    "lines": 2580
+  },
+  {
+    "file": "30-i18n.js",
+    "title": "多语言：词条表 / 模板表 / 引擎",
+    "start": 29210,
+    "end": 31144,
+    "lines": 1935
+  },
+  {
+    "file": "31-settings-panes.js",
+    "title": "设置：路径 / 自动更新面板",
+    "start": 31145,
+    "end": 31302,
+    "lines": 158
+  },
+  {
+    "file": "32-settings-agent.js",
+    "title": "设置弹窗 + Agent 配置",
+    "start": 31303,
+    "end": 31756,
+    "lines": 454
+  },
+  {
+    "file": "33-progress.js",
+    "title": "进度条 / 暂停 / 终止",
+    "start": 31757,
+    "end": 31903,
+    "lines": 147
+  },
+  {
+    "file": "33-privacy.js",
+    "title": "隐私设置（小说 / 工作区加锁）",
+    "lines": 0
+  },
+  {
+    "file": "34-text-utils.js",
+    "title": "分段 / JSON / 调用模型",
+    "start": 31904,
+    "end": 32214,
+    "lines": 311
+  },
+  {
+    "file": "35-analyze-task.js",
+    "title": "分析任务主流程",
+    "start": 32215,
+    "end": 32683,
+    "lines": 469
+  },
+  {
+    "file": "36-name-match.js",
+    "title": "名字归一 / 笔误 / 假名 / 变体字表",
+    "start": 32684,
+    "end": 33006,
+    "lines": 323
+  },
+  {
+    "file": "37-sentence.js",
+    "title": "分句 / 度量 / 同人判断",
+    "start": 33007,
+    "end": 33307,
+    "lines": 301
+  },
+  {
+    "file": "38-evidence.js",
+    "title": "依据字数 / 章节日 / 地点归属",
+    "start": 33308,
+    "end": 33467,
+    "lines": 160
+  },
+  {
+    "file": "39-fill-records.js",
+    "title": "把识别结果写进人物 / 事件 / 设定",
+    "start": 33468,
+    "end": 34496,
+    "lines": 1029
+  },
+  {
+    "file": "40-modal-control.js",
+    "title": "弹窗控制",
+    "start": 34497,
+    "end": 34594,
+    "lines": 98
+  },
+  {
+    "file": "41-history.js",
+    "title": "历史版本 / 回退",
+    "start": 34595,
+    "end": 34733,
+    "lines": 139
+  },
+  {
+    "file": "42-import-export.js",
+    "title": "导入 / 导出",
+    "start": 34734,
+    "end": 34871,
+    "lines": 138
+  },
+  {
+    "file": "46-maps.js",
+    "title": "地图（板块图 / 模拟图）",
+    "lines": 0
+  },
+  {
+    "file": "47-maps-vector.js",
+    "title": "地图：图片 → 矢量",
+    "lines": 0
+  },
+  {
+    "file": "48-skill-tree.js",
+    "title": "设定条目的树型拓扑（技能树等）",
+    "lines": 0
+  },
+  {
+    "file": "49-pedigree.js",
+    "title": "人物分析：系谱（对象 / 结合线 / 世系线）",
+    "start": 0,
+    "end": 0,
+    "lines": 137
+  },
+  {
+    "file": "50-novel.js",
+    "title": "文本编辑：事件正文 .md",
+    "lines": 0
+  },
+  {
+    "file": "51-novel-export.js",
+    "title": "生成整本小说：Markdown / Word / PDF",
+    "lines": 0
+  },
+  {
+    "file": "43-bindings.js",
+    "title": "事件绑定",
+    "start": 34872,
+    "end": 36810,
+    "lines": 1939
+  },
+  {
+    "file": "44-boot.js",
+    "title": "启动",
+    "start": 36811,
+    "end": 36844,
+    "lines": 34
+  },
+  {
+    "file": "45-zoom.js",
+    "title": "界面缩放（Ctrl+滚轮）",
+    "start": 36845,
+    "end": 36949,
+    "lines": 105
+  }
+]

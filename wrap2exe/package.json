@@ -1,0 +1,83 @@
+{
+  "name": "fiction-gui",
+  "productName": "Adaa的小说工坊",
+  "version": "1.3.0",
+  "description": "Adaa的小说工坊：多线剧情 · 人物档案 · 设定档案",
+  "author": "Adaa",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qiupeiyue/fiction_GUI.git"
+  },
+  "homepage": "https://github.com/qiupeiyue/fiction_GUI",
+  "main": "main.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node ../tools/build.js --force && node sync-src.js && electron .",
+    "dist": "node ../tools/build.js --force && node sync-src.js && electron-builder --win",
+    "check": "node ../tools/build.js --force && node --check ../app.js && node ../tools/check-radar-evidence.js",
+    "release": "node release.js"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.adaa.fictiongui",
+    "productName": "Adaa的小说工坊",
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "logo_adaa.ico",
+      "executableName": "Adaa_Fiction_Workshop",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "artifactName": "AdaaFictionGUI-Setup-${version}.${ext}",
+      "oneClick": false,
+      "perMachine": true,
+      "multiLanguageInstaller": true,
+      "installerLanguages": [
+        "en_US",
+        "zh_CN",
+        "zh_TW",
+        "ja_JP"
+      ],
+      "displayLanguageSelector": false,
+      "allowToChangeInstallationDirectory": true,
+      "uninstallDisplayName": "卸载",
+      "deleteAppDataOnUninstall": true,
+      "include": "installer.nsh"
+    },
+    "afterPack": "afterPack.js",
+    "publish": {
+      "provider": "github",
+      "owner": "qiupeiyue",
+      "repo": "fiction_GUI",
+      "releaseType": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "app.js",
+      "styles.css",
+      "vendor/**",
+      "logo_adaa.ico"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "extraResources": [
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md",
+      "TRADEMARK.md"
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
+}

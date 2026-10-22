@@ -1,0 +1,14 @@
+# 敏感信息 / 构建产物，不要提交到 git
+.release-token
+.npmrc
+node_modules/
+dist/
+build/
+index.html
+app.js
+styles.css
+logo_adaa.ico
+vendor/
+LICENSE
+THIRD_PARTY_NOTICES.md
+TRADEMARK.md

@@ -1,0 +1,19 @@
+* text=auto
+
+*.js text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.ico binary
+*.exe binary
+*.png binary
+*.jpg binary
+*.webp binary
+
+*.min.js -diff
