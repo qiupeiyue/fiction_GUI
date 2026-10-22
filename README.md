@@ -8,13 +8,23 @@ A local writing tool for long-form fiction. Character profiles, the storyboard, 
 >
 > Multi-thread plotting · character profiles · setting library · storyboard · timeline · text editor · novel export
 
-> 当前版本 / Version：**1.3.0** ｜ 更新时间 / Updated：**2026-10-20**
+> 当前版本 / Version：**1.3.1** ｜ 更新时间 / Updated：**2026-10-23**
 >
 > 许可证 / License：**GNU AGPL v3 or later** ｜ GitHub：[qiupeiyue/fiction_GUI](https://github.com/qiupeiyue/fiction_GUI)
 
 ---
 
-## 本版重点更新 / What's new in 1.3.0
+## 本版重点更新 / What's new in 1.3.1
+
+- **事件轴**：事件卡可以直接拖到另一张事件卡上移动；拖动事件卡、章节线或节线到窗口边缘时会自动滚动。
+- **多选**：修复 Shift 连选和 Ctrl / Cmd 加选失效的问题。
+- **文本分析**：事件按正文出现顺序回填；补填前面章节时，会插入正确位置，不再一律追加到章末。
+
+- **Storyboard**: event cards can be dropped directly onto another card; dragging cards, chapter lines or section lines near the window edge scrolls automatically.
+- **Multi-select**: fixed Shift range selection and Ctrl / Cmd add-to-selection.
+- **Text analysis**: events are written back in source order; filling an earlier chapter now inserts events in the correct position instead of appending them to the chapter end.
+
+## 1.3.0 更新 / What's new in 1.3.0
 
 ### 新增：文本编辑 / New: MyText
 
@@ -68,12 +78,12 @@ The Matrix gains a Compatibility rendering switch that disables GPU compositing 
 
 ## 安装说明 / Installation
 
-- 安装包 `AdaaFictionGUI-Setup-1.3.0.exe` 在 Releases 页面下载，双击安装；默认安装到 `C:\Program Files\Adaa_Fiction_Workshop`，安装向导中可更改目录。
+- 安装包 `AdaaFictionGUI-Setup-1.3.1.exe` 在 Releases 页面下载，双击安装；默认安装到 `C:\Program Files\Adaa_Fiction_Workshop`，安装向导中可更改目录。
 - 导出文件与历史版本默认保存在「文档」下的 `fiction_GUI\output` 与 `fiction_GUI\history`，不在安装目录内。
 - Windows 可能提示未知发布者，选择继续即可；程序暂未进行数字签名。
 - 卸载仅删除程序本身；导出文件与历史版本需手动清理，卸载时会提示这两个路径。
 
-- Download `AdaaFictionGUI-Setup-1.3.0.exe` from the Releases page and double-click to install. It installs to `C:\Program Files\Adaa_Fiction_Workshop` by default; the wizard allows changing the folder.
+- Download `AdaaFictionGUI-Setup-1.3.1.exe` from the Releases page and double-click to install. It installs to `C:\Program Files\Adaa_Fiction_Workshop` by default; the wizard allows changing the folder.
 - Export files and history are stored under `Documents\fiction_GUI\output` and `Documents\fiction_GUI\history`, outside the installation folder.
 - Windows may warn about an unknown publisher; continuing is fine, as the app is not code-signed yet.
 - Uninstalling removes the program only. Export files and history must be deleted manually; the uninstaller shows both paths.

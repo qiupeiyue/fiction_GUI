@@ -57883,8 +57883,8 @@ hr.scene-break { border: 0; border-top: 1px solid #ccc; width: 32%; margin: 1.8e
     return `初始化出错了：${err}　→ 请按 Ctrl + Shift + R 强制刷新；若仍报错，请把这句话发给我。`;
   }
 
-window.__APP_BUILD__ = "v1.3.0";
-window.__APP_RELEASE_DATE__ = "2026-10-20";
+window.__APP_BUILD__ = "v1.3.1";
+window.__APP_RELEASE_DATE__ = "2026-10-23";
 // 当前这次构建的编号（从 app.js?v=… 里取）：用来确认「页面到底跑的是不是最新代码」
 window.__APP_DEV__ = (function () {
   try {
