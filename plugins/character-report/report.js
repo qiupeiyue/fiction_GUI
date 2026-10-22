@@ -5,6 +5,10 @@ const LABELS = {
     characters: "人物",
     withEvidence: "有文本分析依据",
     basic: "基本信息",
+    importanceMain: "主要",
+    importanceSupporting: "次要",
+    importanceExtra: "龙套",
+    importanceUnknown: "未标注",
     relations: "人物关系",
     trajectory: "人物小传",
     bioStart: "故事从「{title}」开始。",
@@ -74,6 +78,10 @@ const LABELS = {
     characters: "Characters",
     withEvidence: "with text-analysis evidence",
     basic: "Profile",
+    importanceMain: "Main",
+    importanceSupporting: "Supporting",
+    importanceExtra: "Extra",
+    importanceUnknown: "Unranked",
     relations: "Relations",
     trajectory: "Character biography",
     bioStart: "The story begins with “{title}”. ",
@@ -143,6 +151,10 @@ const LABELS = {
     characters: "人物",
     withEvidence: "有文字分析依據",
     basic: "基本資訊",
+    importanceMain: "主要",
+    importanceSupporting: "次要",
+    importanceExtra: "龍套",
+    importanceUnknown: "未標註",
     relations: "人物關係",
     trajectory: "人物小傳",
     bioStart: "故事從「{title}」開始。",
@@ -212,6 +224,10 @@ const LABELS = {
     characters: "人物",
     withEvidence: "テキスト解析の根拠あり",
     basic: "基本情報",
+    importanceMain: "主要",
+    importanceSupporting: "準主要",
+    importanceExtra: "モブ",
+    importanceUnknown: "未設定",
     relations: "人物関係",
     trajectory: "人物小伝",
     bioStart: "物語は「{title}」から始まります。",
@@ -311,6 +327,166 @@ function unique(list) {
   return out;
 }
 
+function localDateText() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+    now.getDate()
+  ).padStart(2, "0")}`;
+}
+
+const GENERIC_ALIAS_RE = /^(?:无|未知|没有|暂无|none|null|n\/a|—|-|无明确别名.*|不列为.*|不是别名.*|非别名.*)$/i;
+
+function nameTokens(value) {
+  const raw = text(value);
+  if (!raw || /无明确别名|不列为|不是别名|非别名/.test(raw)) return [];
+  return raw
+    .split(/[、,，/／;；|｜]+/)
+    .map((part) => part.trim().replace(/^[「『“"']+|[」』”"']+$/g, ""))
+    .filter((part) => part && !GENERIC_ALIAS_RE.test(part));
+}
+
+function characterNameTokens(char) {
+  const out = [];
+  const add = (value) => {
+    const s = text(value);
+    if (s && out.indexOf(s) < 0) out.push(s);
+  };
+  add(char && char.name);
+  (char && char.aliases ? char.aliases : []).forEach((alias) => nameTokens(alias).forEach(add));
+  ((char && char.fields) || []).forEach((field) => {
+    if (!/别名|别称|曾用名|昵称|同一人物/.test(text(field && field.label))) return;
+    nameTokens(field && field.value).forEach(add);
+  });
+  return out;
+}
+
+function analysisNameTokens(record) {
+  const out = [];
+  const add = (value) => {
+    const s = text(value);
+    if (s && out.indexOf(s) < 0) out.push(s);
+  };
+  add(record && record.name);
+  ((record && record.fields) || []).forEach((field) => {
+    if (!/别名|别称|曾用名|昵称|同一人物/.test(text(field && field.label))) return;
+    nameTokens(field && field.value).forEach(add);
+  });
+  return out;
+}
+
+function namesLikelySame(a, b) {
+  const left = norm(a);
+  const right = norm(b);
+  if (!left || !right) return false;
+  if (left === right) return true;
+  const short = left.length <= right.length ? left : right;
+  const long = left.length <= right.length ? right : left;
+  return short.length >= 2 && (long.startsWith(short + "·") || long.startsWith(short + "・"));
+}
+
+function mergeTextValue(a, b) {
+  const left = text(a);
+  const right = text(b);
+  if (!left) return right;
+  if (!right || left === right) return left;
+  if (left.includes(right)) return left;
+  if (right.includes(left)) return right;
+  return left + "；" + right;
+}
+
+function mergeCharacterCards(characters, events) {
+  const cards = (characters || []).filter(Boolean);
+  const parent = cards.map((_, index) => index);
+  const find = (index) => {
+    while (parent[index] !== index) {
+      parent[index] = parent[parent[index]];
+      index = parent[index];
+    }
+    return index;
+  };
+  const union = (a, b) => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent[rb] = ra;
+  };
+  const byName = new Map();
+  cards.forEach((card, index) => {
+    const key = norm(card.name);
+    if (!key) return;
+    if (!byName.has(key)) byName.set(key, []);
+    byName.get(key).push(index);
+  });
+  cards.forEach((card, index) => {
+    const tokens = characterNameTokens(card);
+    tokens.forEach((token) => {
+      (byName.get(norm(token)) || []).forEach((other) => union(index, other));
+    });
+  });
+
+  const groups = new Map();
+  cards.forEach((card, index) => {
+    const root = find(index);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(card);
+  });
+
+  const eventCount = (card) =>
+    (events || []).filter((event) => (event.characterIds || []).includes(card.id)).length;
+  const score = (card) =>
+    eventCount(card) * 3 +
+    ((card.fields || []).length || 0) +
+    Object.keys(card.radar || {}).length +
+    (text(card.name).length >= 4 ? 2 : 0);
+
+  return Array.from(groups.values()).map((group) => {
+    const primary = group.slice().sort((a, b) => score(b) - score(a))[0];
+    const merged = Object.assign({}, primary);
+    merged.ids = unique(group.map((card) => card.id));
+    merged.aliases = unique(
+      group
+        .flatMap((card) => [card.name].concat(card.aliases || []))
+        .filter((name) => norm(name) !== norm(primary.name))
+    );
+    merged.factionIds = unique(group.flatMap((card) => card.factionIds || []));
+    merged.tags = unique(group.flatMap((card) => card.tags || []));
+    [
+      "gender",
+      "age",
+      "role",
+      "appearance",
+      "personality",
+      "background",
+      "goal",
+      "relationships",
+      "notes",
+    ].forEach((key) => {
+      group.forEach((card) => {
+        merged[key] = mergeTextValue(merged[key], card[key]);
+      });
+    });
+    const fields = [];
+    group.forEach((card) => {
+      (card.fields || []).forEach((field) => {
+        const label = text(field && field.label);
+        const value = text(field && field.value);
+        if (!label || !value) return;
+        const hit = fields.find((item) => norm(item.label) === norm(label));
+        if (hit) hit.value = mergeTextValue(hit.value, value);
+        else fields.push({ label, value });
+      });
+    });
+    merged.fields = fields;
+    merged.radar = Object.assign({}, primary.radar || {});
+    group.forEach((card) => {
+      Object.keys(card.radar || {}).forEach((key) => {
+        if (merged.radar[key] == null || merged.radar[key] === "") merged.radar[key] = card.radar[key];
+      });
+    });
+    merged.__nameTokens = characterNameTokens(merged);
+    return merged;
+  });
+}
+
 const FIELD_ALIASES = {
   name: ["姓名", "名字", "name", "名前"],
   gender: ["性别", "性別", "gender"],
@@ -394,6 +570,40 @@ function analysisSummaryOf(analysis, lang) {
   return sentences.slice(0, 3).join(lang === "en" ? " " : "");
 }
 
+function rawImportanceOf(char, analysis) {
+  const fromCard = ((char && char.fields) || []).find((field) =>
+    /重要度|重要程度/.test(text(field && field.label))
+  );
+  if (fromCard && text(fromCard.value)) return text(fromCard.value);
+  for (const group of analysis || []) {
+    for (const record of group.records || []) {
+      const field = (record.fields || []).find((item) =>
+        /重要度|重要程度/.test(text(item && item.label))
+      );
+      if (field && text(field.value)) return text(field.value);
+    }
+  }
+  return "";
+}
+
+function importanceInfo(raw, eventCount, labels) {
+  const value = text(raw).toLowerCase();
+  if (/主要|主角|重要/.test(value) && !/不重要/.test(value)) {
+    return { rank: 0, label: labels.importanceMain, value: text(raw) };
+  }
+  if (/次要|配角|support|準主要|准主要/.test(value)) {
+    return { rank: 1, label: labels.importanceSupporting, value: text(raw) };
+  }
+  if (/龙套|路人|extra|モブ|mob/.test(value)) {
+    return { rank: 2, label: labels.importanceExtra, value: text(raw) };
+  }
+  return {
+    rank: eventCount > 0 ? 3 : 4,
+    label: labels.importanceUnknown,
+    value: text(raw),
+  };
+}
+
 function projectOf(input) {
   if (!input || typeof input !== "object") return null;
   if (input.data && Array.isArray(input.data.characters)) {
@@ -462,6 +672,7 @@ function collectReport(input, lang) {
   const events = (data.events || [])
     .slice()
     .sort((a, b) => (Number(a.storyIndex) || 0) - (Number(b.storyIndex) || 0) || (narration.get(a.id) ?? 0) - (narration.get(b.id) ?? 0));
+  const characters = mergeCharacterCards(data.characters || [], events);
   const tasks = ((data.analysis || {}).tasks) || [];
   let radarAxes = (((data.radar || {}).axes) || []).filter((axis) => text(axis && axis.label));
   if (!radarAxes.length) {
@@ -499,10 +710,12 @@ function collectReport(input, lang) {
   }
 
   function relationRows(char) {
+    const ids = new Set(char.ids || [char.id]);
     return (data.relations || [])
-      .filter((rel) => rel && (rel.fromId === char.id || rel.toId === char.id))
+      .filter((rel) => rel && (ids.has(rel.fromId) || ids.has(rel.toId)))
       .map((rel) => {
-        const other = (data.characters || []).find((item) => item.id === (rel.fromId === char.id ? rel.toId : rel.fromId));
+        const otherId = ids.has(rel.fromId) ? rel.toId : rel.fromId;
+        const other = characters.find((item) => (item.ids || [item.id]).includes(otherId));
         if (!other) return null;
         return { name: other.name, kind: text(rel.kind), note: text(rel.note) };
       })
@@ -510,11 +723,17 @@ function collectReport(input, lang) {
   }
 
   function analysisFor(char) {
-    const keys = new Set([char.name].concat(char.aliases || []).map(norm).filter(Boolean));
+    const keys = (char.__nameTokens || characterNameTokens(char)).slice();
     const out = [];
     tasks.forEach((task) => {
       const records = ((task.results || []) || []).filter(
-        (record) => record && record.type === "character" && keys.has(norm(record.name))
+        (record) => {
+          if (!record || record.type !== "character") return false;
+          const recordKeys = analysisNameTokens(record);
+          return recordKeys.some((recordKey) =>
+            keys.some((charKey) => namesLikelySame(recordKey, charKey))
+          );
+        }
       );
       if (records.length) out.push({ task, records });
     });
@@ -592,8 +811,9 @@ function collectReport(input, lang) {
 
   function trajectory(char) {
     const rows = [];
+    const ids = new Set(char.ids || [char.id]);
     events.forEach((event) => {
-      if (!(event.characterIds || []).includes(char.id)) return;
+      if (!(event.characterIds || []).some((id) => ids.has(id))) return;
       const chapter = event.chapterId ? chapters.get(event.chapterId) : null;
       const section = event.sectionId ? sections.get(event.sectionId) : null;
       const row = Number(event.storyIndex) || 0;
@@ -619,31 +839,44 @@ function collectReport(input, lang) {
     return rows;
   }
 
-  const records = (data.characters || []).map((char) => {
+  const records = characters.map((char) => {
     const analysis = analysisFor(char);
     const analysisFields = analysisFieldsOf(analysis);
+    const trajectoryRows = trajectory(char);
+    const importance = importanceInfo(rawImportanceOf(char, analysis), trajectoryRows.length, labels);
     return {
       name: char.name || "—",
       aliases: (char.aliases || []).filter(Boolean),
       group: groupName(char),
       factions: factionNames(char),
       tags: (char.tags || []).filter(Boolean),
+      importance: importance.value,
+      importanceLabel: importance.label,
+      importanceRank: importance.rank,
+      eventCount: trajectoryRows.length,
+      ids: char.ids || [char.id],
       fields: fieldRows(char),
       analysisFields,
       analysisSummary: analysisSummaryOf(analysis, lang),
       relations: relationRows(char),
-      trajectory: trajectory(char),
+      trajectory: trajectoryRows,
       radar: radarRows(char, analysis),
       analysis,
     };
   });
+  records.sort(
+    (a, b) =>
+      a.importanceRank - b.importanceRank ||
+      b.eventCount - a.eventCount ||
+      String(a.name).localeCompare(String(b.name), lang === "ja" ? "ja" : "zh")
+  );
 
   return {
     title: project.title,
     lang,
     labels,
     records,
-    date: new Date().toISOString().slice(0, 10),
+    date: localDateText(),
     withEvidence: records.filter((record) => record.analysis.length > 0).length,
   };
 }
@@ -836,7 +1069,9 @@ function renderCharacter(record, labels, index, lang, include) {
     .join("");
   const headingTags = [record.group, ...record.factions, ...record.tags].filter(Boolean);
   return `<section class="character" id="char-${index}">
-    <h2>${esc(record.name)}</h2>
+    <h2 id="char-head-${index}">${esc(record.name)} <span class="imp-badge">${esc(
+    record.importanceLabel
+  )}</span></h2>
     ${headingTags.length ? `<div class="tags">${headingTags.map((tag) => `<span>${esc(tag)}</span>`).join("")}</div>` : ""}
     ${
       include.fields || analysisSummary
@@ -875,7 +1110,12 @@ function buildHtml(input, lang, opts) {
   const labels = report.labels;
   const colon = report.lang === "en" ? ": " : "：";
   const toc = report.records
-    .map((record, index) => `<li><a href="#char-${index + 1}">${esc(record.name)}</a></li>`)
+    .map(
+      (record, index) =>
+        `<li><a href="#char-head-${index + 1}"><span>${esc(record.name)}</span><span class="toc-imp">${esc(
+          record.importanceLabel
+        )}</span></a></li>`
+    )
     .join("");
   const sections = report.records
     .map((record, index) => renderCharacter(record, labels, index + 1, report.lang, include))
@@ -896,9 +1136,11 @@ body { margin: 0; color: #26303b; font-family: "Songti SC", "STSong", "SimSun", 
 .toc h2 { text-align: center; font-size: 18pt; margin: 0 0 8mm; }
 .toc ul { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 16mm; line-height: 1.7; }
 .toc li { margin: 0 0 2.4mm; }
-.toc a { color: inherit; text-decoration: none; }
+.toc a { display: flex; justify-content: space-between; gap: 3mm; color: inherit; text-decoration: none; }
+.toc-imp { flex: none; color: #7b8494; font-size: 8pt; }
 .character { page-break-before: always; }
 .character h2 { font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; font-size: 21pt; font-weight: 700; text-align: center; margin: 0 0 4mm; color: #1f2937; }
+.imp-badge { display: inline-block; margin-left: 2.5mm; padding: .5mm 2mm; border: 1px solid #d8dee8; border-radius: 99px; color: #6b7280; font-size: 8pt; font-weight: 500; vertical-align: middle; }
 .tags { text-align: center; margin-bottom: 6mm; }
 .tags span { display: inline-block; margin: 0 1.2mm 1.2mm 0; padding: 1mm 2.3mm; border: 1px solid #d8dee8; border-radius: 99px; font-size: 8.3pt; color: #5b6472; }
 h2, h3, h4 { font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; }
