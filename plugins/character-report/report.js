@@ -10,6 +10,11 @@ const LABELS = {
     bioStart: "故事从「{title}」开始。",
     bioThen: "后来，",
     bioFinally: "到最后，",
+    bioPhaseStart: "故事前期，",
+    bioPhaseMid: "随着经历推进，",
+    bioPhaseLate: "到了后期，",
+    bioSummary: "总体来看，",
+    bioFlow: "人生轨迹：",
     radar: "雷达评分",
     radarEvidence: "雷达评分依据",
     radarSupportLink: "此外，",
@@ -74,6 +79,11 @@ const LABELS = {
     bioStart: "The story begins with “{title}”. ",
     bioThen: "Later, ",
     bioFinally: "By the end, ",
+    bioPhaseStart: "In the early part of the story, ",
+    bioPhaseMid: "As the story develops, ",
+    bioPhaseLate: "By the later stages, ",
+    bioSummary: "Overall, ",
+    bioFlow: "Story arc: ",
     radar: "Radar scores",
     radarEvidence: "Radar evidence",
     radarSupportLink: "In addition, ",
@@ -138,6 +148,11 @@ const LABELS = {
     bioStart: "故事從「{title}」開始。",
     bioThen: "後來，",
     bioFinally: "到最後，",
+    bioPhaseStart: "故事前期，",
+    bioPhaseMid: "隨著經歷推進，",
+    bioPhaseLate: "到了後期，",
+    bioSummary: "總體來看，",
+    bioFlow: "人生軌跡：",
     radar: "雷達評分",
     radarEvidence: "雷達評分依據",
     radarSupportLink: "此外，",
@@ -202,6 +217,11 @@ const LABELS = {
     bioStart: "物語は「{title}」から始まります。",
     bioThen: "その後、",
     bioFinally: "終盤には、",
+    bioPhaseStart: "物語の前半では、",
+    bioPhaseMid: "物語が進むにつれて、",
+    bioPhaseLate: "後半には、",
+    bioSummary: "全体として、",
+    bioFlow: "歩み：",
     radar: "レーダースコア",
     radarEvidence: "レーダーの根拠",
     radarSupportLink: "さらに、",
@@ -662,78 +682,73 @@ function firstColumnWidthEm(labels) {
   return Math.min(18, Math.max(4.2, max + 1.6));
 }
 
-function eventLead(event, charName, first, labels, lang, hasBody) {
-  const title = clipNarrative(event.title, 70) || "—";
-  if (first) return labels.bioStart.replace("{title}", title);
-  const time = clipNarrative(event.time, 45);
-  const place = clipNarrative(event.place, 65);
-  if (lang === "en") {
-    if (time && place) return `In ${time}, at ${place}, `;
-    if (time) return `In ${time}, `;
-    if (place) return `At ${place}, `;
-    return hasBody ? "" : `${charName} faces “${title}”. `;
-  }
-  if (lang === "ja") {
-    if (time && place) return `${time}、${place}で、`;
-    if (time) return `${time}、`;
-    if (place) return `${place}で、`;
-    return hasBody ? "" : `${charName}は「${title}」に直面します。`;
-  }
-  if (time && place) return `在${time}的${place}，`;
-  if (time) return `${time}，`;
-  if (place) return `在${place}，`;
-  return hasBody ? "" : `${charName}经历了「${title}」。`;
+function summarizeEvent(event, lang) {
+  const result = text(event.result);
+  const process = text(event.process);
+  const cause = text(event.cause);
+  let chosen = "";
+  if (result && !/^[（(]/.test(result)) chosen = result;
+  else if (process) chosen = process;
+  else if (result) chosen = result.replace(/^[（(]/, "").replace(/[）)]$/, "");
+  else if (cause) chosen = cause;
+  if (!chosen) return "";
+  return finishSentence(clipNarrative(chosen, 105), lang);
 }
 
-function eventNarrative(event, charName, first, labels, lang) {
-  const cause = clipNarrative(event.cause, 100);
-  const process = clipNarrative(event.process, 240);
-  const result = clipNarrative(event.result, 120);
-  const hasBody = !!(cause || process || result);
-  const pieces = [];
-  const lead = eventLead(event, charName, first, labels, lang, hasBody);
-  if (lead) pieces.push(lead);
-  const seen = [];
-  const add = (value) => {
-    const s = text(value);
-    if (!s) return;
-    if (seen.some((item) => norm(item) === norm(s) || norm(item).includes(norm(s)) || norm(s).includes(norm(item)))) return;
-    seen.push(s);
-    pieces.push(finishSentence(s, lang));
-  };
-  if (cause && process) {
-    const stripEnd = (value) => value.replace(/[。！？!?…]+$/, "");
-    const connective = lang === "en" ? "; " : lang === "ja" ? "。" : /^(为|为了|因|因为|由于)/.test(cause) ? "，" : "；";
-    add(`${stripEnd(cause)}${connective}${stripEnd(process)}`);
-  } else {
-    add(cause);
-    add(process);
+function samplePhase(events, max) {
+  if (events.length <= max) return events;
+  const out = [];
+  for (let i = 0; i < max; i += 1) {
+    const event = events[Math.round((i * (events.length - 1)) / (max - 1))];
+    if (event && out.indexOf(event) < 0) out.push(event);
   }
-  if (!process || process.length < 80) add(result);
-  return pieces.join(lang === "en" ? " " : "");
+  return out;
 }
 
-function bioFor(record, labels, lang) {
+function bioFor(record, labels, lang, analysisSummary) {
   if (!record.trajectory.length) return `<p class="muted">${esc(labels.noEvents)}</p>`;
+  const total = record.trajectory.length;
+  const phaseCount = Math.min(3, Math.max(1, Math.ceil(total / 3)));
+  const phaseSize = Math.ceil(total / phaseCount);
+  const phaseLabels =
+    phaseCount === 1
+      ? [labels.bioPhaseStart]
+      : phaseCount === 2
+      ? [labels.bioPhaseStart, labels.bioPhaseLate]
+      : [labels.bioPhaseStart, labels.bioPhaseMid, labels.bioPhaseLate];
   const parts = [];
-  const groups = [];
-  for (let i = 0; i < record.trajectory.length; i += 3) {
-    groups.push(record.trajectory.slice(i, i + 3));
-  }
-  groups.forEach((group, groupIndex) => {
-    let prefix = "";
-    if (groupIndex > 0) {
-      if (groupIndex === groups.length - 1) prefix = labels.bioFinally;
-      else if (groupIndex === 1) prefix = labels.bioThen;
+  const flow = [];
+  if (total <= 8) {
+    record.trajectory.forEach((event) => flow.push(event));
+  } else {
+    for (let i = 0; i < 8; i += 1) {
+      const event = record.trajectory[Math.round((i * (total - 1)) / 7)];
+      if (event && flow.indexOf(event) < 0) flow.push(event);
     }
-    let body = group
-      .map((event, eventIndex) =>
-        eventNarrative(event, record.name, groupIndex === 0 && eventIndex === 0, labels, lang)
-      )
+  }
+  const flowTitles = flow.map((event) => clipNarrative(event.title, 26)).filter(Boolean);
+  if (flowTitles.length) {
+    parts.push(
+      `<p class="bio-flow"><span>${esc(labels.bioFlow)}</span>${htmlText(flowTitles.join(" → "))}</p>`
+    );
+  }
+  for (let phaseIndex = 0; phaseIndex < phaseCount; phaseIndex += 1) {
+    const start = phaseIndex * phaseSize;
+    const phase = record.trajectory.slice(start, start + phaseSize);
+    if (!phase.length) continue;
+    const chosen = samplePhase(phase, 3);
+    let body = chosen
+      .map((event) => summarizeEvent(event, lang))
+      .filter(Boolean)
       .join(lang === "en" ? " " : "");
+    const prefix = phaseLabels[phaseIndex] || "";
     if (prefix && lang === "en" && body) body = body.charAt(0).toLowerCase() + body.slice(1);
-    parts.push(`<p>${htmlText(prefix)}${htmlText(body)}</p>`);
-  });
+    if (body) parts.push(`<p>${htmlText(prefix)}${htmlText(body)}</p>`);
+  }
+  const summary = clipNarrative(analysisSummary, 170);
+  if (summary) {
+    parts.push(`<p class="bio-summary">${htmlText(labels.bioSummary)}${htmlText(finishSentence(summary, lang))}</p>`);
+  }
   return parts.join("");
 }
 
@@ -763,7 +778,7 @@ function renderCharacter(record, labels, index, lang, include) {
         .join("")
     : `<li class="muted">${esc(labels.noRelations)}</li>`;
   const trajectoryRows = record.trajectory.length
-    ? bioFor(record, labels, lang)
+    ? bioFor(record, labels, lang, include.analysis ? record.analysisSummary : "")
     : `<p class="muted">${esc(labels.noEvents)}</p>`;
   const radarAxes = record.radar.filter(
     (axis) => axis.value != null || axis.primary || (axis.support && axis.support.length)
@@ -871,34 +886,43 @@ function buildHtml(input, lang, opts) {
 <style>
 @page { size: A4; }
 * { box-sizing: border-box; }
-body { margin: 0; color: #20242b; font-family: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif; font-size: 9.5pt; line-height: 1.48; }
+p { margin: 0; orphans: 2; widows: 2; }
+body { margin: 0; color: #26303b; font-family: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif; font-size: 10.2pt; line-height: 1.68; }
 .cover { min-height: 245mm; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; page-break-after: always; }
-.cover h1 { margin: 0 0 8mm; font-size: 24pt; letter-spacing: .08em; }
-.cover .subtitle { font-size: 15pt; color: #5b6472; margin-bottom: 10mm; }
-.cover .meta { font-size: 9pt; color: #697386; line-height: 1.6; }
+.cover h1 { margin: 0 0 9mm; font-size: 26pt; letter-spacing: .08em; color: #1f2937; }
+.cover .subtitle { font-size: 15.5pt; color: #5b6472; margin-bottom: 11mm; }
+.cover .meta { font-size: 9.5pt; color: #697386; line-height: 1.75; }
 .toc { page-break-after: always; }
-.toc h2 { text-align: center; font-size: 17pt; margin: 0 0 6mm; }
-.toc ul { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 14mm; }
-.toc li { margin: 0 0 2mm; }
+.toc h2 { text-align: center; font-size: 18pt; margin: 0 0 8mm; }
+.toc ul { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 16mm; line-height: 1.7; }
+.toc li { margin: 0 0 2.4mm; }
 .toc a { color: inherit; text-decoration: none; }
 .character { page-break-before: always; }
-.character h2 { font-size: 19pt; text-align: center; margin: 0 0 3mm; color: #1f2937; }
-.tags { text-align: center; margin-bottom: 5mm; }
-.tags span { display: inline-block; margin: 0 1mm 1mm 0; padding: .7mm 2mm; border: 1px solid #d8dce5; border-radius: 99px; font-size: 8pt; color: #5b6472; }
-h3 { font-size: 12pt; color: #334155; border-bottom: 1px solid #d8dce5; padding-bottom: 1mm; margin: 5mm 0 2mm; }
-h4 { font-size: 10pt; margin: 3mm 0 .8mm; }
-.fields { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 1.5mm 0 3mm; line-height: 1.42; }
-.fields th, .fields td { border: 1px solid #e1e5ec; padding: 1.2mm 2mm; vertical-align: top; text-align: left; }
-.fields th { white-space: normal; overflow-wrap: anywhere; background: #f6f7f9; font-weight: 600; }
-.fields td { width: auto; }
-.fields tr.summary-row th, .fields tr.summary-row td { background: #f7f8fa; }
+.character h2 { font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; font-size: 21pt; font-weight: 700; text-align: center; margin: 0 0 4mm; color: #1f2937; }
+.tags { text-align: center; margin-bottom: 6mm; }
+.tags span { display: inline-block; margin: 0 1.2mm 1.2mm 0; padding: 1mm 2.3mm; border: 1px solid #d8dee8; border-radius: 99px; font-size: 8.3pt; color: #5b6472; }
+h2, h3, h4 { font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; }
+h3 { font-size: 13.5pt; color: #243447; border-bottom: 1.2px solid #d8dee8; padding-bottom: 1.6mm; margin: 7mm 0 3.2mm; break-after: avoid; }
+h4 { font-size: 11pt; color: #243447; margin: 4mm 0 1.4mm; }
+.fields { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2mm 0 4mm; font-size: 9.8pt; line-height: 1.55; }
+.fields thead { display: table-header-group; }
+.fields tr { break-inside: avoid; }
+.fields th, .fields td { border: 1px solid #e1e6ee; padding: 1.5mm 2.2mm; vertical-align: top; text-align: left; }
+.fields th { white-space: normal; overflow-wrap: anywhere; background: #f4f6f9; color: #334155; font-size: 9.4pt; font-weight: 600; }
+.fields td { width: auto; overflow-wrap: anywhere; }
+.fields tbody tr:nth-child(even) td { background: #fbfcfd; }
+.fields tr.summary-row th, .fields tr.summary-row td { background: #f7f8fb; }
 .muted { color: #8a93a3; }
-.bio { margin: 1mm 0 3mm; }
-.bio p { margin: 0 0 2.2mm; text-indent: 2em; text-align: justify; line-height: 1.48; }
-.meta { color: #667085; font-size: 8.5pt; margin-bottom: .8mm; }
-.axis-block { margin: 1mm 0 3mm; break-inside: avoid; }
-.axis-block p { margin: 0 0 1.4mm; text-align: justify; }
-.radar-conclusion { margin: 1.2mm 0 3mm; padding-left: 3mm; border-left: 2px solid #cbd5e1; color: #475569; }
+.bio { margin: 2mm 0 4mm; }
+.bio p { margin: 0 0 3mm; text-indent: 2em; text-align: justify; line-height: 1.7; }
+.bio-flow { margin: 0 0 3.5mm; padding: 2mm 3mm; border: 1px solid #e3e7ed; border-radius: 1.2mm; background: #f7f9fc; text-indent: 0 !important; color: #425066; font-size: 9.3pt; line-height: 1.65; }
+.bio-flow span { margin-right: 2mm; color: #64748b; font-weight: 600; }
+.bio-summary { margin-top: 3mm; padding: 2.5mm 3.5mm; border-left: 3px solid #9aa8bb; background: #f7f9fc; text-indent: 0 !important; }
+.meta { color: #667085; font-size: 8.8pt; margin-bottom: 1mm; }
+.axis-block { margin: 0 0 5mm; padding-top: 2.5mm; border-top: 1px solid #edf0f5; break-inside: avoid; }
+.axis-block h4 { margin-top: 0; }
+.axis-block p { margin: 0 0 2mm; text-align: justify; line-height: 1.68; }
+.radar-conclusion { margin: 2mm 0 0; padding: 2mm 3mm; border-left: 3px solid #b8c3d3; background: #f7f9fc; color: #3f4c5f; text-indent: 0; }
 </style></head><body>
 <section class="cover"><h1>${esc(report.title)}</h1><div class="subtitle">${esc(labels.characterBook)}</div>
 <div class="meta">${esc(labels.characters)}${colon}${report.records.length} · ${esc(labels.withEvidence)}${colon}${report.withEvidence}<br>${esc(

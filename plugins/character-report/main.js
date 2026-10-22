@@ -145,7 +145,7 @@ async function renderPdf(html, outputPath) {
       headerTemplate: "<div></div>",
       footerTemplate:
         '<div style="width:100%;font-size:8px;color:#6b7280;text-align:center;"><span class="pageNumber"></span> / <span class="totalPages"></span></div>',
-      margins: { top: 0.6, bottom: 0.6, left: 0.55, right: 0.55 },
+      margins: { top: 0.7, bottom: 0.7, left: 0.65, right: 0.65 },
       generateDocumentOutline: true,
       generateTaggedPDF: true,
     });
